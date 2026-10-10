@@ -18,3 +18,19 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> éditeurs, système, journaux ###
+/.idea/
+/.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+###< éditeurs, système, journaux ###
+
+###> fichiers locaux à ne jamais publier ###
+*.sql
+*.sql.gz
+/docs/**/~$*
+###< fichiers locaux à ne jamais publier ###

@@ -1,0 +1,49 @@
+# Intégration continue : à chaque push et pull request, on installe le projet
+# et on vérifie qu'il est sain (lint + 93 tests PHPUnit). Aucune base de données n'est nécessaire.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: Tests (PHP 8.3)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Installation de PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: ctype, iconv, intl, mbstring, pdo_mysql, xml, zip, gd
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Installation des dépendances
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Vérification du conteneur de services
+        run: php bin/console lint:container
+
+      - name: Vérification des templates Twig
+        run: php bin/console lint:twig templates
+
+      - name: Vérification des fichiers YAML
+        run: php bin/console lint:yaml config --parse-tags
+
+      - name: Vérification du mapping Doctrine
+        run: php bin/console doctrine:schema:validate --skip-sync
+
+      - name: Tests PHPUnit
+        run: php vendor/bin/phpunit

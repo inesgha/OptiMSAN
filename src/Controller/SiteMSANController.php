@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/site/m/s/a/n')]
+#[Route('/admin/sites')]
 #[IsGranted('ROLE_ADMIN')]
 final class SiteMSANController extends AbstractController
 {

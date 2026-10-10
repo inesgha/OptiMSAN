@@ -43,14 +43,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const sites = {{ sites|json_encode|raw }};
     const demandes = {{ demandes|json_encode|raw }};
 
+    // Les textes viennent de la base : on les échappe avant de les insérer dans le HTML du popup
+    function echapper(texte) {
+        const div = document.createElement('div');
+        div.textContent = texte ?? '';
+        return div.innerHTML;
+    }
+
     const tousLesPoints = [];
 
     sites.forEach(function (site) {
         if (site.latitude && site.longitude) {
             const marker = L.marker([site.latitude, site.longitude], { icon: iconSite }).addTo(map);
             marker.bindPopup(
-                '<strong>' + site.nomSite + '</strong><br>' +
-                'Type : ' + site.typeMSAN
+                '<strong>' + echapper(site.nomSite) + '</strong><br>' +
+                'Type : ' + echapper(site.typeMSAN)
             );
             tousLesPoints.push([site.latitude, site.longitude]);
         }
@@ -60,9 +67,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (demande.latitude && demande.longitude) {
             const marker = L.marker([demande.latitude, demande.longitude], { icon: iconDemande }).addTo(map);
             marker.bindPopup(
-                '<strong>' + demande.codeDemande + '</strong><br>' +
-                'Offre : ' + demande.typeOffre + '<br>' +
-                demande.adresseInstallation
+                '<strong>' + echapper(demande.codeDemande) + '</strong><br>' +
+                'Offre : ' + echapper(demande.typeOffre) + '<br>' +
+                echapper(demande.adresseInstallation)
             );
             tousLesPoints.push([demande.latitude, demande.longitude]);
         }

@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/slot/card')]
+#[Route('/admin/cartes')]
 #[IsGranted('ROLE_ADMIN')]
 final class SlotCardController extends AbstractController
 {

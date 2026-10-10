@@ -1,0 +1,16 @@
+# Fins de ligne homogènes (LF) quel que soit le système d'exploitation
+* text=auto eol=lf
+
+# Fichiers binaires
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.ico  binary
+*.xlsx binary
+*.docx binary
+*.pdf  binary
+
+# Scripts Windows
+*.bat  text eol=crlf

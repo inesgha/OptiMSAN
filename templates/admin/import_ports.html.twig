@@ -25,6 +25,7 @@
     </div>
 
     <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="_token" value="{{ csrf_token('import-ports') }}">
         <div class="mb-3">
             <label class="form-label">Fichier Excel (.xlsx)</label>
             <input type="file" name="fichier_excel" class="form-control" accept=".xlsx,.xls" required>

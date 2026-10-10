@@ -186,6 +186,11 @@ public function importerPorts(
     ValidatorInterface $validator
 ): Response {
     if ($request->isMethod('POST')) {
+        if (!$this->isCsrfTokenValid('import-ports', $request->getPayload()->getString('_token'))) {
+            $this->addFlash('error', 'Formulaire expiré : veuillez réessayer.');
+            return $this->redirectToRoute('admin_import_ports');
+        }
+
         /** @var UploadedFile|null $file */
         $file = $request->files->get('fichier_excel');
 

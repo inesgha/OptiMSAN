@@ -1510,10 +1510,10 @@ a.om-kpi:hover {
 
 .om-toast.toast:not(.show) { display: none; }
 
-.om-toast--success { --tone: var(--om-success); }
-.om-toast--danger  { --tone: var(--om-danger); }
-.om-toast--warning { --tone: #D97706; }
-.om-toast--info    { --tone: var(--om-info); }
+.om-toast.om-toast--success { --tone: var(--om-success); }
+.om-toast.om-toast--danger  { --tone: var(--om-danger); }
+.om-toast.om-toast--warning { --tone: #D97706; }
+.om-toast.om-toast--info    { --tone: var(--om-info); }
 
 .om-toast__icon {
     margin-top: .05rem;

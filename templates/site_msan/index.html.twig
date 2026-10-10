@@ -1,54 +1,58 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Sites MSAN{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('app_site_m_s_a_n_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>Ajouter un site</a>
+    {% endset %}
+    {{ ui.page_header('Sites MSAN', {
+        eyebrow: 'Inventaire réseau',
+        icon: 'building',
+        subtitle: 'Sites hébergeant les équipements MSAN, localisés sur la carte.',
+        actions: actions,
+    }) }}
+    {{ ui.hierarchie('site') }}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Sites MSAN</h1>
-        <a href="{{ path('app_site_m_s_a_n_new') }}" class="btn btn-success">+ Ajouter un site</a>
-    </div>
-
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Nom du site</th>
-                <th>Adresse IP</th>
-                <th>Type MSAN</th>
-                <th>Constructeur</th>
-                <th>Zone</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for siteMsan in site_m_s_a_ns %}
-            <tr>
-                <td>{{ siteMsan.id }}</td>
-                <td>{{ siteMsan.nomSite }}</td>
-                <td><code>{{ siteMsan.adresseIP }}</code></td>
-                <td><span class="badge bg-info text-dark">{{ siteMsan.typeMSAN }}</span></td>
-                <td>{{ siteMsan.constructeur }}</td>
-                <td>{{ siteMsan.zone ? siteMsan.zone.nomZone : '—' }}</td>
-                <td>{{ siteMsan.latitude }}</td>
-                <td>{{ siteMsan.longitude }}</td>
-                <td>
-                    <a href="{{ path('app_site_m_s_a_n_show', {'id': siteMsan.id}) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
-                    <a href="{{ path('app_site_m_s_a_n_edit', {'id': siteMsan.id}) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
-                </td>
-            </tr>
+    <section class="om-card" data-controller="table-filter" aria-label="Liste des sites MSAN">
+        {% if site_m_s_a_ns is empty %}
+            {{ ui.empty_state('Aucun site MSAN enregistré', 'Ajoutez un site et placez-le sur la carte.', 'building', path('app_site_m_s_a_n_new'), 'Ajouter un site') }}
         {% else %}
-            <tr>
-                <td colspan="9" class="text-center text-muted py-4">Aucun site MSAN enregistré</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            {{ ui.toolbar('Rechercher un site, une IP, un constructeur…') }}
+            <div class="table-responsive">
+                <table class="table om-table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Site</th>
+                            <th scope="col">Adresse IP</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Constructeur</th>
+                            <th scope="col">Coordonnées</th>
+                            <th scope="col" class="om-col-actions"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for siteMsan in site_m_s_a_ns %}
+                            <tr data-table-filter-target="row">
+                                <td>
+                                    <span class="om-cell-main">{{ siteMsan.nomSite }}</span>
+                                    <span class="om-cell-sub"><i class="bi bi-map me-1" aria-hidden="true"></i>{{ siteMsan.zone ? siteMsan.zone.nomZone : 'Sans zone' }}</span>
+                                </td>
+                                <td><code>{{ siteMsan.adresseIp }}</code></td>
+                                <td><span class="om-tag">{{ siteMsan.typeMSAN }}</span></td>
+                                <td>{{ siteMsan.constructeur }}</td>
+                                <td class="om-mono om-small text-nowrap">{{ siteMsan.latitude|number_format(4, '.') }}, {{ siteMsan.longitude|number_format(4, '.') }}</td>
+                                <td class="om-col-actions">
+                                    <a href="{{ path('app_site_m_s_a_n_show', {'id': siteMsan.id}) }}" class="btn btn-ghost btn-sm"><i class="bi bi-eye" aria-hidden="true"></i>Voir<span class="visually-hidden"> le site {{ siteMsan.nomSite }}</span></a>
+                                    <a href="{{ path('app_site_m_s_a_n_edit', {'id': siteMsan.id}) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil" aria-hidden="true"></i>Modifier<span class="visually-hidden"> le site {{ siteMsan.nomSite }}</span></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {{ ui.aucun_resultat(6) }}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

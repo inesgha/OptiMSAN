@@ -1,62 +1,62 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Demandes de ligne{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
-</nav>
+{% block content %}
+    {{ ui.page_header('Demandes de ligne', {
+        eyebrow: 'Exploitation',
+        icon: 'telephone-plus',
+        subtitle: 'Validez les demandes d\'installation et affectez un port MSAN libre.',
+    }) }}
 
-<div class="container mt-4">
-    <h1 class="mb-4">Demandes de ligne</h1>
-
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Référence</th>
-                <th>Client</th>
-                <th>Offre</th>
-                <th>Adresse</th>
-                <th>Port affecté</th>
-                <th>État</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for demande in demandes %}
-            <tr>
-                <td><code>{{ demande.codeDemande }}</code></td>
-                <td>{{ demande.client ? demande.client.prenom ~ ' ' ~ demande.client.nom : '—' }}</td>
-                <td>{{ demande.typeOffre }}</td>
-                <td>{{ demande.adresseInstallation }}</td>
-                <td>
-                    {% if demande.portMSAN %}
-                        Port {{ demande.portMSAN.numeroPort }}
-                    {% else %}
-                        <span class="text-muted">Non affecté</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <span class="badge bg-{{ demande.etatDemande == 'en_attente' ? 'warning' : (demande.etatDemande == 'refusee' ? 'danger' : 'success') }}">
-                        {{ demande.etatDemande }}
-                    </span>
-                </td>
-                <td>{{ demande.dateDemande ? demande.dateDemande|date('d/m/Y H:i') : '' }}</td>
-                <td>
-                    <a href="{{ path('admin_demande_ligne_assign', {'id': demande.id}) }}" class="btn btn-sm btn-primary">Gérer</a>
-                </td>
-            </tr>
+    <section class="om-card" data-controller="table-filter" aria-label="Liste des demandes de ligne">
+        {% if demandes is empty %}
+            {{ ui.empty_state('Aucune demande pour le moment', 'Les demandes de nouvelle ligne déposées par les clients apparaîtront ici.', 'telephone-plus') }}
         {% else %}
-            <tr>
-                <td colspan="8" class="text-center text-muted py-4">Aucune demande pour le moment</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            {{ ui.toolbar('Rechercher une référence, un client, une adresse…', constant('App\\Service\\DemandeLigneWorkflow::LIBELLES')) }}
+            <div class="table-responsive">
+                <table class="table om-table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Référence</th>
+                            <th scope="col">Client</th>
+                            <th scope="col">Offre</th>
+                            <th scope="col">Adresse d'installation</th>
+                            <th scope="col">Port affecté</th>
+                            <th scope="col">État</th>
+                            <th scope="col" class="om-col-actions"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for demande in demandes %}
+                            <tr data-table-filter-target="row" data-etat="{{ demande.etatDemande }}">
+                                <td>
+                                    <code>{{ demande.codeDemande }}</code>
+                                    <span class="om-cell-sub">{{ demande.dateDemande ? demande.dateDemande|date('d/m/Y H:i') }}</span>
+                                </td>
+                                <td class="text-nowrap">{{ ui.personne(demande.client) }}</td>
+                                <td class="text-nowrap">{{ demande.typeOffre|libelle('offre') }}</td>
+                                <td><span class="om-truncate" title="{{ demande.adresseInstallation }}">{{ demande.adresseInstallation }}</span></td>
+                                <td class="text-nowrap">
+                                    {% if demande.portMSAN %}
+                                        <i class="bi bi-ethernet om-muted me-1" aria-hidden="true"></i>Port {{ demande.portMSAN.numeroPort }}
+                                    {% else %}
+                                        <span class="om-muted">Non affecté</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ ui.badge('demande', demande.etatDemande) }}</td>
+                                <td class="om-col-actions">
+                                    <a href="{{ path('admin_demande_ligne_assign', {'id': demande.id}) }}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-sliders" aria-hidden="true"></i>Gérer<span class="visually-hidden"> la demande {{ demande.codeDemande }}</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {{ ui.aucun_resultat(7) }}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

@@ -1,25 +1,18 @@
 {{ form_start(form) }}
-    {{ form_errors(form) }}
-    <div class="mb-3">
-        {{ form_label(form.numeroPort, 'Numéro Port') }}
-        {{ form_widget(form.numeroPort, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.numeroPort) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.typePort, 'Type de port') }}
-        {{ form_widget(form.typePort, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.typePort) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.etatPort, 'État du port') }}
-        {{ form_widget(form.etatPort, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.etatPort) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.dateAffectation, 'Date d\'affectation') }}
-        {{ form_widget(form.dateAffectation, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.dateAffectation) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.slotCard, 'SlotCard') }}
-        {{ form_widget(form.slotCard, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.slotCard) }}
-    </div>
-
-    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+    <section class="om-card">
+        <div class="om-card__body">
+            {{ form_errors(form) }}
+            {{ form_row(form.slotCard, {'label': 'Carte (SlotCard)', 'help': 'Le nombre de ports d\'une carte ne peut pas dépasser sa capacité.'}) }}
+            <div class="row gx-3">
+                <div class="col-md-4">{{ form_row(form.numeroPort, {'label': 'Numéro de port', 'attr': {'min': 0}}) }}</div>
+                <div class="col-md-8">{{ form_row(form.typePort, {'label': 'Type de port', 'attr': {'placeholder': 'Ex. VDSL2'}}) }}</div>
+                <div class="col-md-6">{{ form_row(form.etatPort, {'label': 'État du port'}) }}</div>
+                <div class="col-md-6">{{ form_row(form.dateAffectation, {'label': 'Date d\'affectation'}) }}</div>
+            </div>
+        </div>
+        <div class="om-card__footer">
+            <a href="{{ path('app_port_m_s_a_n_index') }}" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>{{ button_label|default('Enregistrer') }}</button>
+        </div>
+    </section>
 {{ form_end(form) }}

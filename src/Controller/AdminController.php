@@ -35,6 +35,7 @@ use App\Form\TechnicienCreateType;
 use App\Repository\UtilisateurRepository;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Repository\QualificationLigneRepository;
+use App\Repository\TechnicienRepository;
 use App\Service\DemandeLigneWorkflow;
 use App\Service\ReclamationWorkflow;
 use Symfony\Component\Form\FormError;
@@ -46,9 +47,65 @@ class AdminController extends AbstractController
 {
     #[Route('/', name: 'admin_dashboard')]
     #[IsGranted('ROLE_ADMIN')]
-    public function index(): Response
+    public function index(
+        ReclamationRepository $reclamationRepository,
+        DemandeLigneRepository $demandeLigneRepository,
+        SiteMSANRepository $siteMSANRepository,
+        TechnicienRepository $technicienRepository
+    ): Response {
+        $sites = $siteMSANRepository->findSaturationParSite();
+        $saturation = $this->syntheseSaturation($sites);
+
+        // Sites les plus chargés en premier
+        foreach ($sites as &$site) {
+            $site['taux'] = $site['total_ports'] > 0 ? round($site['ports_occupes'] / $site['total_ports'] * 100, 1) : 0;
+        }
+        unset($site);
+        usort($sites, fn (array $a, array $b) => $b['taux'] <=> $a['taux']);
+
+        $ticketsParEtat = $reclamationRepository->compterParEtat();
+        $demandesParEtat = $demandeLigneRepository->compterParEtat();
+
+        return $this->render('admin/index.html.twig', [
+            'ticketsParEtat' => $ticketsParEtat,
+            'ticketsOuverts' => $ticketsParEtat[Reclamation::ETAT_OUVERT] ?? 0,
+            'ticketsEnCours' => $ticketsParEtat[Reclamation::ETAT_EN_COURS] ?? 0,
+            'ticketsUrgents' => $reclamationRepository->count([
+                'priorite' => 'urgente',
+                'etatTicket' => [Reclamation::ETAT_OUVERT, Reclamation::ETAT_EN_COURS],
+            ]),
+            'demandesParEtat' => $demandesParEtat,
+            'demandesEnAttente' => $demandesParEtat[DemandeLigne::ETAT_EN_ATTENTE] ?? 0,
+            'tauxGlobal' => $saturation['tauxGlobal'],
+            'totalPorts' => $saturation['totalPorts'],
+            'totalOccupes' => $saturation['totalOccupes'],
+            'techniciensDisponibles' => $technicienRepository->count(['disponible' => true]),
+            'techniciensTotal' => $technicienRepository->count([]),
+            'derniersTickets' => $reclamationRepository->findBy([], ['dateCreation' => 'DESC'], 6),
+            'sitesCharges' => array_slice($sites, 0, 5),
+        ]);
+    }
+
+    /**
+     * Totaux de ports et taux d'occupation global à partir de findSaturationParSite().
+     *
+     * @return array{totalPorts: int, totalOccupes: int, tauxGlobal: float|int}
+     */
+    private function syntheseSaturation(array $sites): array
     {
-        return $this->render('admin/index.html.twig');
+        $totalPorts = 0;
+        $totalOccupes = 0;
+
+        foreach ($sites as $site) {
+            $totalPorts += (int) $site['total_ports'];
+            $totalOccupes += (int) $site['ports_occupes'];
+        }
+
+        return [
+            'totalPorts' => $totalPorts,
+            'totalOccupes' => $totalOccupes,
+            'tauxGlobal' => $totalPorts > 0 ? round(($totalOccupes / $totalPorts) * 100, 1) : 0,
+        ];
     }
     #[Route('/reclamations', name: 'admin_reclamations')]
 #[IsGranted('ROLE_ADMIN')]
@@ -107,22 +164,13 @@ public function demandesLigne(DemandeLigneRepository $demandeLigneRepository): R
 public function saturation(SiteMSANRepository $siteMSANRepository): Response
 {
     $sites = $siteMSANRepository->findSaturationParSite();
-
-    $totalPorts = 0;
-    $totalOccupes = 0;
-
-    foreach ($sites as $site) {
-        $totalPorts += (int) $site['total_ports'];
-        $totalOccupes += (int) $site['ports_occupes'];
-    }
-
-    $tauxGlobal = $totalPorts > 0 ? round(($totalOccupes / $totalPorts) * 100, 1) : 0;
+    $saturation = $this->syntheseSaturation($sites);
 
     return $this->render('admin/saturation.html.twig', [
         'sites' => $sites,
-        'totalPorts' => $totalPorts,
-        'totalOccupes' => $totalOccupes,
-        'tauxGlobal' => $tauxGlobal,
+        'totalPorts' => $saturation['totalPorts'],
+        'totalOccupes' => $saturation['totalOccupes'],
+        'tauxGlobal' => $saturation['tauxGlobal'],
     ]);
 }
 #[Route('/export-ports', name: 'admin_export_ports')]

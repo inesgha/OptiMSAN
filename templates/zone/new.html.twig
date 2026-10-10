@@ -1,28 +1,15 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Nouvelle Zone{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('app_zone_index') }}">← Zones</a>
-</nav>
-
-<div class="container mt-4" style="max-width: 600px;">
-    <h1 class="mb-4">Nouvelle Zone</h1>
-
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="mb-3">
-            {{ form_label(form.nomZone, 'Nom de la zone') }}
-            {{ form_widget(form.nomZone, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.nomZone) }}
-        </div>
-        <div class="mb-3">
-            {{ form_label(form.codePostal, 'Code postal') }}
-            {{ form_widget(form.codePostal, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.codePostal) }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
-        <a href="{{ path('app_zone_index') }}" class="btn btn-outline-secondary">Annuler</a>
-    {{ form_end(form) }}
-</div>
+{% block content %}
+    <div class="om-narrow">
+        {{ ui.page_header('Nouvelle zone', {
+            back_url: path('app_zone_index'),
+            back_label: 'Zones',
+            subtitle: 'Une zone regroupe les sites MSAN d\'un même secteur géographique.',
+        }) }}
+        {{ include('zone/_form.html.twig', {'button_label': 'Créer la zone'}) }}
+    </div>
 {% endblock %}

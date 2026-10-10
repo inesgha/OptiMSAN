@@ -1,44 +1,54 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Shelves{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('app_shelf_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>Ajouter un shelf</a>
+    {% endset %}
+    {{ ui.page_header('Shelves', {
+        eyebrow: 'Inventaire réseau',
+        icon: 'hdd-rack',
+        subtitle: 'Châssis installés dans les sites MSAN, qui accueillent les cartes.',
+        actions: actions,
+    }) }}
+    {{ ui.hierarchie('shelf') }}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Shelves</h1>
-        <a href="{{ path('app_shelf_new') }}" class="btn btn-primary">+ Ajouter un Shelf</a>
-    </div>
-
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Numéro Shelf</th>
-                <th>Adresse IP Sub</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for shelf in shelves %}
-            <tr>
-                <td><code>{{ shelf.id }}</code></td>
-                <td>{{ shelf.numeroShelf }}</td>
-                <td><code>{{ shelf.adresseIpSub }}</code></td>
-                <td>
-                    <a href="{{ path('app_shelf_show', {'id': shelf.id}) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
-                    <a href="{{ path('app_shelf_edit', {'id': shelf.id}) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
-                </td>
-            </tr>
+    <section class="om-card" data-controller="table-filter" aria-label="Liste des shelves">
+        {% if shelves is empty %}
+            {{ ui.empty_state('Aucun shelf enregistré', 'Ajoutez un shelf à un site MSAN pour pouvoir y insérer des cartes.', 'hdd-rack', path('app_shelf_new'), 'Ajouter un shelf') }}
         {% else %}
-            <tr>
-                <td colspan="4" class="text-center text-muted py-4">Aucun Shelf enregistré</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            {{ ui.toolbar('Rechercher un site, une adresse IP…') }}
+            <div class="table-responsive">
+                <table class="table om-table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Shelf</th>
+                            <th scope="col">Site MSAN</th>
+                            <th scope="col">Adresse IP (sous-réseau)</th>
+                            <th scope="col" class="om-col-actions"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for shelf in shelves %}
+                            <tr data-table-filter-target="row">
+                                <td>
+                                    <span class="om-cell-main">Shelf n°{{ shelf.numeroShelf }}</span>
+                                    <span class="om-cell-sub">ID {{ shelf.id }}</span>
+                                </td>
+                                <td>{{ shelf.siteMSAN ? shelf.siteMSAN.nomSite : '—' }}</td>
+                                <td><code>{{ shelf.adresseIpSub }}</code></td>
+                                <td class="om-col-actions">
+                                    <a href="{{ path('app_shelf_show', {'id': shelf.id}) }}" class="btn btn-ghost btn-sm"><i class="bi bi-eye" aria-hidden="true"></i>Voir<span class="visually-hidden"> le shelf n°{{ shelf.numeroShelf }}</span></a>
+                                    <a href="{{ path('app_shelf_edit', {'id': shelf.id}) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil" aria-hidden="true"></i>Modifier<span class="visually-hidden"> le shelf n°{{ shelf.numeroShelf }}</span></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {{ ui.aucun_resultat(4) }}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

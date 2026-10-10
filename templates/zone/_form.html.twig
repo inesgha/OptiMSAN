@@ -1,4 +1,15 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+    <section class="om-card">
+        <div class="om-card__body">
+            {{ form_errors(form) }}
+            <div class="row gx-3">
+                <div class="col-md-8">{{ form_row(form.nomZone, {'label': 'Nom de la zone', 'attr': {'placeholder': 'Ex. Grand Tunis'}}) }}</div>
+                <div class="col-md-4">{{ form_row(form.codePostal, {'label': 'Code postal', 'help': '4 chiffres', 'attr': {'inputmode': 'numeric', 'maxlength': 4, 'placeholder': '1000'}}) }}</div>
+            </div>
+        </div>
+        <div class="om-card__footer">
+            <a href="{{ path('app_zone_index') }}" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>{{ button_label|default('Enregistrer') }}</button>
+        </div>
+    </section>
 {{ form_end(form) }}

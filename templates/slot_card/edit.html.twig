@@ -1,19 +1,15 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Modifier la SlotCard{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('app_slot_card_index') }}">← SlotCards</a>
-</nav>
-
-<div class="container mt-4" style="max-width: 600px;">
-    <h1 class="mb-4">Modifier la SlotCard</h1>
-
-    {{ include('slot_card/_form.html.twig', {'button_label': 'Enregistrer'}) }}
-
-    <a href="{{ path('app_slot_card_index') }}" class="btn btn-outline-secondary mt-2">← Retour à la liste</a>
-
-    {{ include('slot_card/_delete_form.html.twig') }}
-</div>
+{% block content %}
+    <div class="om-narrow">
+        {{ ui.page_header('Modifier la carte', {
+            back_url: path('app_slot_card_show', {'id': slot_card.id}),
+            back_label: 'Slot n°' ~ slot_card.numeroSlot,
+        }) }}
+        {{ include('slot_card/_form.html.twig', {'button_label': 'Enregistrer'}) }}
+        {{ include('slot_card/_delete_form.html.twig') }}
+    </div>
 {% endblock %}

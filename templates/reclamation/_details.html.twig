@@ -1,0 +1,54 @@
+{# Fiche d'une réclamation, partagée par l'administrateur et le technicien (variable : reclamation) #}
+{% import '_ui/macros.html.twig' as ui %}
+{% set port = reclamation.portMSAN %}
+<section class="om-card" aria-labelledby="titre-details">
+    <div class="om-card__header">
+        <h2 class="om-card__title" id="titre-details"><i class="bi bi-card-text" aria-hidden="true"></i>Détails de la réclamation</h2>
+    </div>
+    <div class="om-card__body">
+        <dl class="om-dl">
+            <dt>Client</dt>
+            <dd>{{ ui.personne(reclamation.client, reclamation.client ? reclamation.client.email : null) }}</dd>
+
+            {% if reclamation.client and reclamation.client.telephone %}
+                <dt>Téléphone</dt>
+                <dd><span class="om-mono">{{ reclamation.client.telephone }}</span></dd>
+            {% endif %}
+
+            <dt>Type de panne</dt>
+            <dd>{{ reclamation.typePanne|libelle('panne') }}</dd>
+
+            <dt>Priorité</dt>
+            <dd>{{ ui.badge('priorite', reclamation.priorite) }}</dd>
+
+            <dt>Port concerné</dt>
+            <dd>
+                {% if port %}
+                    <span class="om-cell-main">Port n°{{ port.numeroPort }}</span> {{ ui.badge('port', port.etatPort) }}
+                    {% set site = port.slotCard.shelf.siteMSAN.nomSite ?? null %}
+                    {% if site %}
+                        <span class="om-cell-sub">{{ site }} · Shelf n°{{ port.slotCard.shelf.numeroShelf }} · Slot n°{{ port.slotCard.numeroSlot }}</span>
+                    {% endif %}
+                {% else %}
+                    <span class="om-muted">Non spécifié</span>
+                {% endif %}
+            </dd>
+
+            <dt>Créé le</dt>
+            <dd class="om-mono">{{ reclamation.dateCreation ? reclamation.dateCreation|date('d/m/Y à H:i') : '—' }}</dd>
+
+            {% if reclamation.dateResolution %}
+                <dt>Résolu le</dt>
+                <dd class="om-mono">{{ reclamation.dateResolution|date('d/m/Y à H:i') }}</dd>
+            {% endif %}
+        </dl>
+
+        <h3 class="om-section-title mt-4">Description du client</h3>
+        <blockquote class="om-quote">{{ reclamation.description ?: 'Aucune description' }}</blockquote>
+
+        {% if reclamation.notesIntervention %}
+            <h3 class="om-section-title mt-4">Notes du technicien</h3>
+            <blockquote class="om-quote om-quote--accent">{{ reclamation.notesIntervention }}</blockquote>
+        {% endif %}
+    </div>
+</section>

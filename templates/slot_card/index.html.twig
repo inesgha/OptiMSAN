@@ -1,46 +1,60 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}SlotCards{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('app_slot_card_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>Ajouter une carte</a>
+    {% endset %}
+    {{ ui.page_header('Cartes', {
+        eyebrow: 'Inventaire réseau',
+        icon: 'cpu',
+        subtitle: 'Cartes (SlotCards) insérées dans les shelves. L\'ID sert de référence dans l\'import Excel.',
+        actions: actions,
+    }) }}
+    {{ ui.hierarchie('carte') }}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>SlotCards</h1>
-        <a href="{{ path('app_slot_card_new') }}" class="btn btn-primary">+ Ajouter une SlotCard</a>
-    </div>
-
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Numéro Slot</th>
-                <th>Type de carte</th>
-                <th>Nombre de ports</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for slot_card in slot_cards %}
-            <tr>
-                <td><code>{{ slot_card.id }}</code></td>
-                <td>{{ slot_card.numeroSlot }}</td>
-                <td><span class="badge bg-info text-dark">{{ slot_card.typeCarte }}</span></td>
-                <td>{{ slot_card.nombrePortsTotal }}</td>
-                <td>
-                    <a href="{{ path('app_slot_card_show', {'id': slot_card.id}) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
-                    <a href="{{ path('app_slot_card_edit', {'id': slot_card.id}) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
-                </td>
-            </tr>
+    <section class="om-card" data-controller="table-filter" aria-label="Liste des cartes">
+        {% if slot_cards is empty %}
+            {{ ui.empty_state('Aucune carte enregistrée', 'Insérez une carte dans un shelf pour pouvoir déclarer ses ports.', 'cpu', path('app_slot_card_new'), 'Ajouter une carte') }}
         {% else %}
-            <tr>
-                <td colspan="5" class="text-center text-muted py-4">Aucune SlotCard enregistrée</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            {{ ui.toolbar('Rechercher un type, un site…') }}
+            <div class="table-responsive">
+                <table class="table om-table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Carte</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Emplacement</th>
+                            <th scope="col" class="om-col-num">Ports</th>
+                            <th scope="col" class="om-col-actions"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slot_card in slot_cards %}
+                            <tr data-table-filter-target="row">
+                                <td><code>{{ slot_card.id }}</code></td>
+                                <td class="om-cell-main">Slot n°{{ slot_card.numeroSlot }}</td>
+                                <td><span class="om-tag">{{ slot_card.typeCarte }}</span></td>
+                                <td>
+                                    {% if slot_card.shelf %}
+                                        {{ slot_card.shelf.siteMSAN ? slot_card.shelf.siteMSAN.nomSite : 'Site ?' }}
+                                        <span class="om-cell-sub">Shelf n°{{ slot_card.shelf.numeroShelf }}</span>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="om-col-num">{{ slot_card.nombrePortsTotal }}</td>
+                                <td class="om-col-actions">
+                                    <a href="{{ path('app_slot_card_show', {'id': slot_card.id}) }}" class="btn btn-ghost btn-sm"><i class="bi bi-eye" aria-hidden="true"></i>Voir<span class="visually-hidden"> la carte {{ slot_card.id }}</span></a>
+                                    <a href="{{ path('app_slot_card_edit', {'id': slot_card.id}) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil" aria-hidden="true"></i>Modifier<span class="visually-hidden"> la carte {{ slot_card.id }}</span></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {{ ui.aucun_resultat(6) }}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

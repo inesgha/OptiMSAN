@@ -90,6 +90,22 @@ class ReclamationRepository extends ServiceEntityRepository
         return $pannes;
     }
 
+    /**
+     * Nombre de tickets par état, ex. ['ouvert' => 4, 'en_cours' => 2].
+     *
+     * @return array<string, int>
+     */
+    public function compterParEtat(): array
+    {
+        $lignes = $this->createQueryBuilder('r')
+            ->select('r.etatTicket AS etat, COUNT(r.id) AS total')
+            ->groupBy('r.etatTicket')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map('intval', array_column($lignes, 'total', 'etat'));
+    }
+
 public function findByTechnicien(Technicien $technicien): array
 {
     return $this->createQueryBuilder('r')

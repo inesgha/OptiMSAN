@@ -1,42 +1,51 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Gérer le ticket {{ reclamation.codeTicket }}{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_reclamations') }}">← Réclamations</a>
-</nav>
+{% block content %}
+    {% set sousTitre %}
+        {{ ui.badge('ticket', reclamation.etatTicket) }} {{ ui.badge('priorite', reclamation.priorite) }}
+        <span class="ms-1">{{ reclamation.typePanne|libelle('panne') }}</span>
+    {% endset %}
+    {{ ui.page_header('Ticket ' ~ reclamation.codeTicket, {
+        back_url: path('admin_reclamations'),
+        back_label: 'Tickets',
+        subtitle: sousTitre,
+    }) }}
 
-<div class="container mt-4" style="max-width: 700px;">
-    <h1 class="mb-4">Ticket {{ reclamation.codeTicket }}</h1>
+    <section class="om-card mb-4" aria-label="Cycle de vie du ticket">
+        <div class="om-card__body py-4">
+            {{ ui.frise_ticket(reclamation) }}
+        </div>
+    </section>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <p><strong>Client :</strong> {{ reclamation.client ? reclamation.client.prenom ~ ' ' ~ reclamation.client.nom : '—' }}</p>
-            <p><strong>Type de panne :</strong> {{ reclamation.typePanne }}</p>
-            <p><strong>Description :</strong> {{ reclamation.description ?: 'Aucune description' }}</p>
-            {% if reclamation.notesIntervention %}
-                <p><strong>Notes du technicien :</strong> {{ reclamation.notesIntervention }}</p>
-            {% endif %}
-            <p><strong>Port concerné :</strong> {{ reclamation.portMSAN ? 'Port ' ~ reclamation.portMSAN.numeroPort : 'Non spécifié' }}</p>
-            <p class="mb-0"><strong>Créé le :</strong> {{ reclamation.dateCreation|date('d/m/Y H:i') }}</p>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            {{ include('reclamation/_details.html.twig') }}
+        </div>
+
+        <div class="col-lg-5">
+            <section class="om-card" aria-labelledby="titre-traitement">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="titre-traitement"><i class="bi bi-sliders" aria-hidden="true"></i>Traitement</h2>
+                        <p class="om-card__subtitle">Assignez un technicien et faites avancer le ticket.</p>
+                    </div>
+                </div>
+                {{ form_start(form) }}
+                    <div class="om-card__body">
+                        {{ form_errors(form) }}
+                        {{ form_row(form.technicien) }}
+                        {{ form_row(form.etatTicket) }}
+                        {% include 'reclamation/_transitions.html.twig' %}
+                    </div>
+                    <div class="om-card__footer">
+                        <a href="{{ path('admin_reclamations') }}" class="btn btn-outline-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Enregistrer</button>
+                    </div>
+                {{ form_end(form) }}
+            </section>
         </div>
     </div>
-
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="mb-3">
-            {{ form_label(form.technicien) }}
-            {{ form_widget(form.technicien, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.technicien) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.etatTicket) }}
-            {{ form_widget(form.etatTicket, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.etatTicket) }}
-            {% include 'reclamation/_transitions.html.twig' %}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
-    {{ form_end(form) }}
-</div>
 {% endblock %}

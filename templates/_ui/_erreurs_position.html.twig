@@ -1,0 +1,11 @@
+{# Erreurs des champs cachés latitude / longitude remplis par la carte, sans doublon.
+   Variables : latitude, longitude (champs de formulaire) #}
+{% set messages = [] %}
+{% for erreur in latitude.vars.errors|merge(longitude.vars.errors) %}
+    {% if erreur.message not in messages %}
+        {% set messages = messages|merge([erreur.message]) %}
+    {% endif %}
+{% endfor %}
+{% for message in messages %}
+    <div class="invalid-feedback d-block mb-3"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ message }}</div>
+{% endfor %}

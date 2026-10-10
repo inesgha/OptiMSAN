@@ -1,25 +1,33 @@
-{% extends 'base.html.twig' %}
+{# Page partagée : carte de l'administrateur (admin_carte) et du technicien (technicien_carte) #}
+{% set vueTechnicien = app.request.attributes.get('_route') == 'technicien_carte' %}
+{% extends vueTechnicien ? 'layout/technicien.html.twig' : 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Carte réseau{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path(is_granted('ROLE_ADMIN') ? 'admin_dashboard' : 'technicien_dashboard') }}">
-        ← Retour au tableau de bord
-    </a>
-</nav>
+{% block content %}
+    {{ ui.page_header('Carte du réseau', {
+        eyebrow: vueTechnicien ? 'Terrain' : 'Pilotage',
+        icon: 'geo-alt',
+        subtitle: 'Sites MSAN et demandes de ligne en attente d\'installation.',
+    }) }}
 
-<div class="container-fluid mt-4">
-    <h1 class="mb-3">Carte du réseau</h1>
+    <section class="om-card" aria-labelledby="titre-carte">
+        <div class="om-card__header">
+            <h2 class="om-card__title" id="titre-carte"><i class="bi bi-map" aria-hidden="true"></i>Vue géographique</h2>
+            <div class="om-legend">
+                <span class="om-legend__item"><span class="om-pin om-pin--site" style="width: 22px; height: 22px; border-width: 2px; font-size: .65rem;"><i class="bi bi-building" aria-hidden="true"></i></span>Sites MSAN <strong class="text-body">{{ sites|length }}</strong></span>
+                <span class="om-legend__item"><span class="om-pin om-pin--demande" style="width: 22px; height: 22px; border-width: 2px; font-size: .65rem;"><i class="bi bi-telephone-plus" aria-hidden="true"></i></span>Demandes en attente <strong class="text-body">{{ demandes|length }}</strong></span>
+                {% if vueTechnicien and app.user.latitudeActuelle %}
+                    <span class="om-legend__item"><span class="om-pin om-pin--moi" style="width: 22px; height: 22px; border-width: 2px; font-size: .65rem;"><i class="bi bi-person" aria-hidden="true"></i></span>Ma position</span>
+                {% endif %}
+            </div>
+        </div>
+        <div id="carteReseau" class="om-map" role="region" aria-label="Carte interactive du réseau"></div>
+    </section>
+{% endblock %}
 
-    <div class="mb-3">
-        <span class="badge bg-primary">🏢 Sites MSAN ({{ sites|length }})</span>
-        <span class="badge bg-warning text-dark">📄 Demandes en attente ({{ demandes|length }})</span>
-    </div>
-
-    <div id="carteReseau" style="height: 600px; border-radius: 8px;"></div>
-</div>
-
+{% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const map = L.map('carteReseau').setView([36.8065, 10.1815], 8);
@@ -28,20 +36,15 @@ document.addEventListener('DOMContentLoaded', function () {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    const iconSite = L.divIcon({
-        html: '🏢',
-        className: 'emoji-marker',
-        iconSize: [30, 30],
-    });
-
-    const iconDemande = L.divIcon({
-        html: '📄',
-        className: 'emoji-marker',
-        iconSize: [30, 30],
-    });
-
-    const sites = {{ sites|json_encode|raw }};
-    const demandes = {{ demandes|json_encode|raw }};
+    function pin(type, icone) {
+        return L.divIcon({
+            className: 'om-pin-wrap',
+            html: '<span class="om-pin om-pin--' + type + '"><i class="bi bi-' + icone + '"></i></span>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -18],
+        });
+    }
 
     // Les textes viennent de la base : on les échappe avant de les insérer dans le HTML du popup
     function echapper(texte) {
@@ -50,43 +53,62 @@ document.addEventListener('DOMContentLoaded', function () {
         return div.innerHTML;
     }
 
+    const sites = {{ sites|json_encode|raw }};
+    const demandes = {{ demandes|json_encode|raw }};
+    const libellesOffres = {{ {
+        'adsl_basique': 'adsl_basique'|libelle('offre'),
+        'vdsl_fibre': 'vdsl_fibre'|libelle('offre'),
+        'fibre_ftth': 'fibre_ftth'|libelle('offre'),
+        'telephone_seul': 'telephone_seul'|libelle('offre'),
+    }|json_encode|raw }};
+    {% if not vueTechnicien %}
+    const urlSite = {{ path('app_site_m_s_a_n_show', {'id': 0})|json_encode|raw }};
+    const urlDemande = {{ path('admin_demande_ligne_assign', {'id': 0})|json_encode|raw }};
+    const lien = (url, id, texte) => '<br><a href="' + url.replace(/\/0(\/|$)/, '/' + id + '$1') + '">' + texte + ' →</a>';
+    {% else %}
+    const lien = () => '';
+    const urlSite = '', urlDemande = '';
+    {% endif %}
+
     const tousLesPoints = [];
 
     sites.forEach(function (site) {
         if (site.latitude && site.longitude) {
-            const marker = L.marker([site.latitude, site.longitude], { icon: iconSite }).addTo(map);
-            marker.bindPopup(
-                '<strong>' + echapper(site.nomSite) + '</strong><br>' +
-                'Type : ' + echapper(site.typeMSAN)
-            );
+            L.marker([site.latitude, site.longitude], { icon: pin('site', 'building'), title: site.nomSite })
+                .addTo(map)
+                .bindPopup(
+                    '<strong>' + echapper(site.nomSite) + '</strong><br>' +
+                    'Type : ' + echapper(site.typeMSAN) +
+                    lien(urlSite, site.id, 'Voir le site')
+                );
             tousLesPoints.push([site.latitude, site.longitude]);
         }
     });
 
     demandes.forEach(function (demande) {
         if (demande.latitude && demande.longitude) {
-            const marker = L.marker([demande.latitude, demande.longitude], { icon: iconDemande }).addTo(map);
-            marker.bindPopup(
-                '<strong>' + echapper(demande.codeDemande) + '</strong><br>' +
-                'Offre : ' + echapper(demande.typeOffre) + '<br>' +
-                echapper(demande.adresseInstallation)
-            );
+            L.marker([demande.latitude, demande.longitude], { icon: pin('demande', 'telephone-plus'), title: demande.codeDemande })
+                .addTo(map)
+                .bindPopup(
+                    '<strong>' + echapper(demande.codeDemande) + '</strong><br>' +
+                    'Offre : ' + echapper(libellesOffres[demande.typeOffre] ?? demande.typeOffre) + '<br>' +
+                    echapper(demande.adresseInstallation) +
+                    lien(urlDemande, demande.id, 'Gérer la demande')
+                );
             tousLesPoints.push([demande.latitude, demande.longitude]);
         }
     });
 
+    {% if vueTechnicien and app.user.latitudeActuelle and app.user.longitudeActuelle %}
+    L.marker([{{ app.user.latitudeActuelle }}, {{ app.user.longitudeActuelle }}], { icon: pin('moi', 'person'), title: 'Ma position' })
+        .addTo(map)
+        .bindPopup('<strong>Ma position</strong>');
+    tousLesPoints.push([{{ app.user.latitudeActuelle }}, {{ app.user.longitudeActuelle }}]);
+    {% endif %}
+
     if (tousLesPoints.length > 0) {
-        map.fitBounds(tousLesPoints, { padding: [50, 50] });
+        map.fitBounds(tousLesPoints, { padding: [50, 50], maxZoom: 14 });
     }
 });
 </script>
-
-<style>
-.emoji-marker {
-    font-size: 24px;
-    text-align: center;
-    background: none;
-    border: none;
-}
-</style>
 {% endblock %}

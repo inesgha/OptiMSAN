@@ -1,4 +1,7 @@
-<form method="post" action="{{ path('app_zone_delete', {'id': zone.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cette zone ?');" class="mt-3">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ zone.id) }}">
-    <button class="btn btn-outline-danger btn-sm">Supprimer cette zone</button>
-</form>
+{{ include('_ui/_delete_zone.html.twig', {
+    action: path('app_zone_delete', {'id': zone.id}),
+    token: 'delete' ~ zone.id,
+    titre: 'Supprimer cette zone',
+    texte: 'Action définitive, impossible tant que des sites MSAN y sont rattachés.',
+    confirmation: 'Voulez-vous vraiment supprimer cette zone ?',
+}) }}

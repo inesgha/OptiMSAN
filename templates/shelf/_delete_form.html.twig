@@ -1,4 +1,7 @@
-<form method="post" action="{{ path('app_shelf_delete', {'id': shelf.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ shelf.id) }}">
-    <button class="btn">Delete</button>
-</form>
+{{ include('_ui/_delete_zone.html.twig', {
+    action: path('app_shelf_delete', {'id': shelf.id}),
+    token: 'delete' ~ shelf.id,
+    titre: 'Supprimer ce shelf',
+    texte: 'Action définitive, impossible tant que des cartes y sont insérées.',
+    confirmation: 'Voulez-vous vraiment supprimer ce shelf ?',
+}) }}

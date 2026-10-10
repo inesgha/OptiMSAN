@@ -1,128 +1,147 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Espace Administrateur{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-    <span class="navbar-brand">OptiMSAN — Admin</span>
-    <div class="d-flex ms-auto">
-        <span class="navbar-text text-white me-3">
-            {{ app.user.prenom }} {{ app.user.nom }}
-        </span>
-        <a href="{{ path('app_logout') }}" class="btn btn-outline-light btn-sm">Déconnexion</a>
-    </div>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('admin_export_ports') }}" class="btn btn-outline-secondary"><i class="bi bi-download" aria-hidden="true"></i>Exporter les ports</a>
+        <a href="{{ path('admin_carte') }}" class="btn btn-primary"><i class="bi bi-geo-alt" aria-hidden="true"></i>Carte réseau</a>
+    {% endset %}
+    {{ ui.page_header('Tableau de bord', {
+        eyebrow: 'Pilotage',
+        icon: 'grid-1x2',
+        subtitle: 'Bonjour ' ~ app.user.prenom ~ ', voici l\'état du réseau et des interventions au ' ~ 'now'|date('d/m/Y à H:i') ~ '.',
+        actions: actions,
+    }) }}
 
-<div class="d-flex">
-    <!-- Sidebar -->
-    <div class="bg-light border-end vh-100 p-3" style="width: 250px;">
-        <h6 class="text-muted text-uppercase small mb-3">Inventaire réseau</h6>
-        <div class="list-group mb-4">
-            <a href="{{ path('app_zone_index') }}" class="list-group-item list-group-item-action">
-                📍 Zones
-            </a>
-            <a href="{{ path('app_site_m_s_a_n_index') }}" class="list-group-item list-group-item-action">
-                🏢 Sites MSAN
-            </a>
-            <a href="{{ path('app_shelf_index') }}" class="list-group-item list-group-item-action">
-                🗄️ Shelves
-            </a>
-            <a href="{{ path('app_slot_card_index') }}" class="list-group-item list-group-item-action">
-                🔌 SlotCards
-            </a>
-            <a href="{{ path('app_port_m_s_a_n_index') }}" class="list-group-item list-group-item-action">
-                🔗 Ports MSAN
-            </a>
+    {# Indicateurs clés #}
+    {% set niveau = ui.niveau(tauxGlobal)|trim %}
+    {% set tonSaturation = {'ok': 'success', 'warn': 'warning', 'crit': 'danger'}[niveau] %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3 mb-4">
+        <div class="col">
+            {% set hint %}
+                {% if ticketsUrgents > 0 %}
+                    <i class="bi bi-exclamation-triangle-fill text-danger" aria-hidden="true"></i>{{ ticketsUrgents }} urgent{{ ticketsUrgents > 1 ? 's' }} à traiter
+                {% else %}
+                    <i class="bi bi-check2" aria-hidden="true"></i>Aucun ticket urgent actif
+                {% endif %}
+            {% endset %}
+            {{ ui.kpi('Tickets ouverts', ticketsOuverts, 'envelope-open', 'info', {url: path('admin_reclamations'), hint: hint}) }}
         </div>
-
-        <h6 class="text-muted text-uppercase small mb-3">Gestion</h6>
-        <div class="list-group">
-            <a href="{{ path('admin_reclamations') }}" class="list-group-item list-group-item-action">
-                🎫 Réclamations
-            </a>
-            <a href="{{ path('admin_demandes_ligne') }}" class="list-group-item list-group-item-action">
-                📄 Demandes de ligne
-            </a>
-            <a href="{{ path('admin_carte') }}" class="list-group-item list-group-item-action">
-                🗺️ Carte réseau
-            </a>
-            <a href="{{ path('admin_equipe') }}" class="list-group-item list-group-item-action">
-    👥 Équipe
-</a>
+        <div class="col">
+            {{ ui.kpi('Tickets en cours', ticketsEnCours, 'tools', 'warning', {url: path('admin_reclamations'), hint: 'Pris en charge par un technicien'}) }}
+        </div>
+        <div class="col">
+            {{ ui.kpi('Demandes en attente', demandesEnAttente, 'hourglass-split', 'violet', {url: path('admin_demandes_ligne'), hint: 'À valider ou à refuser'}) }}
+        </div>
+        <div class="col">
+            {{ ui.kpi('Saturation globale', tauxGlobal|number_format(1, ',', ' '), 'speedometer2', tonSaturation, {
+                url: path('admin_saturation'),
+                suffix: '%',
+                hint: totalOccupes ~ ' / ' ~ totalPorts ~ ' ports occupés',
+            }) }}
+        </div>
+        <div class="col">
+            {{ ui.kpi('Techniciens disponibles', techniciensDisponibles, 'person-badge', 'accent', {
+                url: path('admin_equipe'),
+                suffix: '/ ' ~ techniciensTotal,
+                hint: 'Prêts à recevoir un ticket',
+            }) }}
         </div>
     </div>
 
-    <!-- Contenu principal -->
-    <div class="p-4 flex-grow-1">
-        <h1 class="mb-4">Tableau de bord</h1>
-        <p class="text-muted">Bienvenue, {{ app.user.prenom }} {{ app.user.nom }}.</p>
+    <div class="row g-4">
+        {# Derniers tickets #}
+        <div class="col-xl-8">
+            <section class="om-card h-100" aria-labelledby="titre-derniers-tickets">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="titre-derniers-tickets"><i class="bi bi-ticket-detailed" aria-hidden="true"></i>Derniers tickets</h2>
+                        <p class="om-card__subtitle">Les réclamations clients les plus récentes</p>
+                    </div>
+                    <a href="{{ path('admin_reclamations') }}" class="btn btn-ghost btn-sm">Tous les tickets<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                </div>
+                {% if derniersTickets is empty %}
+                    {{ ui.empty_state('Aucun ticket pour le moment', 'Les réclamations déposées par les clients apparaîtront ici.', 'ticket-detailed') }}
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table om-table table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Ticket</th>
+                                    <th scope="col">Client</th>
+                                    <th scope="col">Panne</th>
+                                    <th scope="col">Priorité</th>
+                                    <th scope="col">État</th>
+                                    <th scope="col" class="om-col-actions"><span class="visually-hidden">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reclamation in derniersTickets %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ reclamation.codeTicket }}</code>
+                                            <span class="om-cell-sub">{{ reclamation.dateCreation ? reclamation.dateCreation|date('d/m/Y H:i') }}</span>
+                                        </td>
+                                        <td class="text-nowrap">{{ reclamation.client ? reclamation.client.prenom ~ ' ' ~ reclamation.client.nom : '—' }}</td>
+                                        <td>{{ reclamation.typePanne|libelle('panne') }}</td>
+                                        <td>{{ ui.badge('priorite', reclamation.priorite) }}</td>
+                                        <td>{{ ui.badge('ticket', reclamation.etatTicket) }}</td>
+                                        <td class="om-col-actions">
+                                            <a href="{{ path('admin_reclamation_assign', {'id': reclamation.id}) }}" class="btn btn-outline-secondary btn-sm">
+                                                Gérer<span class="visually-hidden"> le ticket {{ reclamation.codeTicket }}</span>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
 
-        <div class="row g-3 mt-2">
-            <div class="col-md-4">
-                <div class="card border-primary">
-                    <div class="card-body">
-                        <h5 class="card-title">Zones</h5>
-                        <p class="card-text text-muted">Gérer les zones géographiques</p>
-                        <a href="{{ path('app_zone_index') }}" class="btn btn-primary btn-sm">Accéder</a>
-                    </div>
+        <div class="col-xl-4 d-flex flex-column gap-4">
+            {# Sites les plus chargés #}
+            <section class="om-card" aria-labelledby="titre-sites">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-sites"><i class="bi bi-building" aria-hidden="true"></i>Sites les plus chargés</h2>
+                    <a href="{{ path('admin_saturation') }}" class="btn btn-ghost btn-sm">Détail<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-success">
-                    <div class="card-body">
-                        <h5 class="card-title">Sites MSAN</h5>
-                        <p class="card-text text-muted">Gérer les sites et équipements</p>
-                        <a href="{{ path('app_site_m_s_a_n_index') }}" class="btn btn-success btn-sm">Accéder</a>
-                    </div>
+                {% if sitesCharges is empty %}
+                    <p class="om-card__body om-muted mb-0">Aucun site MSAN enregistré.</p>
+                {% else %}
+                    <ul class="om-list">
+                        {% for site in sitesCharges %}
+                            <li class="om-list__item">
+                                <div class="om-list__main">
+                                    <div class="d-flex justify-content-between align-items-baseline gap-2 mb-1">
+                                        <span class="om-cell-main text-truncate">{{ site.nom_site }}</span>
+                                        <span class="om-tag">{{ site.type_msan }}</span>
+                                    </div>
+                                    {{ ui.meter(site.taux, 'Saturation du site ' ~ site.nom_site) }}
+                                    <span class="om-cell-sub">{{ site.ports_occupes ?? 0 }} / {{ site.total_ports }} ports occupés</span>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </section>
+
+            {# Répartition des tickets et des demandes #}
+            <section class="om-card" aria-labelledby="titre-repartition">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-repartition"><i class="bi bi-bar-chart" aria-hidden="true"></i>Répartition par état</h2>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-warning">
-                    <div class="card-body">
-                        <h5 class="card-title">📊 Dashboard de saturation</h5>
-                        <p class="card-text text-muted">Taux d'occupation des ports par site.</p>
-                        <a href="{{ path('admin_saturation') }}" class="btn btn-warning btn-sm">Consulter</a>
-                    </div>
+                <div class="om-card__body">
+                    <h3 class="om-section-title">Tickets</h3>
+                    {{ ui.repartition('ticket', ticketsParEtat, ['ouvert', 'en_cours', 'resolu', 'ferme']) }}
+                    <hr class="my-4">
+                    <h3 class="om-section-title">Demandes de ligne</h3>
+                    {{ ui.repartition('demande', demandesParEtat, ['en_attente', 'validee', 'en_cours', 'installee', 'refusee']) }}
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-info">
-                    <div class="card-body">
-                        <h5 class="card-title">🗺️ Carte réseau</h5>
-                        <p class="card-text text-muted">Visualisez sites MSAN et demandes en attente.</p>
-                        <a href="{{ path('admin_carte') }}" class="btn btn-info btn-sm">Voir la carte</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card border-danger h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">🎫 Réclamations</h5>
-                        <p class="card-text text-muted">Voir et assigner les tickets clients.</p>
-                        <a href="{{ path('admin_reclamations') }}" class="btn btn-danger btn-sm">Accéder</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card border-info h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">📄 Demandes de ligne</h5>
-                        <p class="card-text text-muted">Gérer les demandes de nouvelle ligne.</p>
-                        <a href="{{ path('admin_demandes_ligne') }}" class="btn btn-info btn-sm">Accéder</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card border-dark h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">📊 Import / Export Excel</h5>
-                        <p class="card-text text-muted">Gérez l'inventaire des ports MSAN en masse via Excel.</p>
-                        <a href="{{ path('admin_export_ports') }}" class="btn btn-dark btn-sm">Exporter</a>
-                        <a href="{{ path('admin_import_ports') }}" class="btn btn-outline-dark btn-sm">Importer</a>
-                    </div>
-                </div>
-            </div>
+            </section>
         </div>
     </div>
-</div>
 {% endblock %}

@@ -1,80 +1,161 @@
 {% extends 'base.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}OptiMSAN — Gestion réseau fixe & support technique{% endblock %}
 
 {% block body %}
-<nav class="navbar navbar-dark px-4 py-3" style="background-color: #10151F;">
-    <div class="d-flex align-items-center">
-        <img src="{{ asset('image/logo-tunisie-telecom2.webp') }}" alt="Tunisie Télécom" height="36" class="me-3">
-        <span class="navbar-brand mb-0" style="letter-spacing: -0.02em;">OptiMSAN</span>
+<header class="om-public-nav">
+    <div class="container om-public-nav__inner">
+        <a class="om-brand" href="{{ path('app_home') }}">
+            {{ include('_ui/_logo.html.twig', {sous_titre: 'Réseau d\'accès MSAN'}) }}
+        </a>
+        <nav class="d-flex align-items-center gap-2" aria-label="Accès">
+            {% if app.user %}
+                {% set espace = is_granted('ROLE_ADMIN') ? 'admin_dashboard' : (is_granted('ROLE_TECHNICIEN') ? 'technicien_dashboard' : 'client_dashboard') %}
+                <a href="{{ path(espace) }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-grid-1x2" aria-hidden="true"></i>Accéder à mon espace
+                </a>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn btn-outline-light btn-sm">Se connecter</a>
+                <a href="{{ path('app_register') }}" class="btn btn-primary btn-sm d-none d-sm-inline-flex">Créer un compte</a>
+            {% endif %}
+        </nav>
     </div>
-    <div class="d-flex gap-2">
-        {% if app.user %}
-            <a href="{{ path(
-                is_granted('ROLE_ADMIN') ? 'admin_dashboard' :
-                (is_granted('ROLE_TECHNICIEN') ? 'technicien_dashboard' : 'client_dashboard')
-            ) }}" class="btn btn-primary btn-sm">Accéder à mon espace</a>
-        {% else %}
-            <a href="{{ path('app_login') }}" class="btn btn-outline-light btn-sm">Se connecter</a>
-            <a href="{{ path('app_register') }}" class="btn btn-primary btn-sm">Créer un compte</a>
-        {% endif %}
-    </div>
-</nav>
+</header>
 
-<section class="py-5" style="background-color: #10151F; color: #fff;">
-    <div class="container py-5">
-        <div class="row align-items-center">
-            <div class="col-lg-7">
-                <h1 class="display-5 mb-3" style="font-weight: 700; letter-spacing: -0.02em;">
-                    Le réseau fixe, sous contrôle.
-                </h1>
-                <p class="fs-5" style="color: #A8B0BD; max-width: 540px;">
-                    OptiMSAN centralise la supervision de l'infrastructure MSAN, le suivi des pannes
-                    et la gestion des demandes de ligne — pour les techniciens, les clients et les équipes réseau.
-                </p>
-                {% if not app.user %}
-                <div class="mt-4 d-flex gap-2">
-                    <a href="{{ path('app_register') }}" class="btn btn-primary btn-lg">Créer un compte</a>
-                    <a href="{{ path('app_login') }}" class="btn btn-outline-light btn-lg">Se connecter</a>
+<main id="contenu" tabindex="-1">
+    <section class="om-hero">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <span class="om-hero__badge"><i class="bi bi-reception-4" aria-hidden="true"></i>Supervision du réseau d'accès fixe</span>
+                    <h1 class="om-hero__title">Le réseau fixe,<br><span>sous contrôle.</span></h1>
+                    <p class="om-hero__lead">
+                        OptiMSAN centralise l'inventaire des équipements MSAN, le suivi des pannes
+                        et la gestion des demandes de ligne — pour les clients, les techniciens
+                        et les équipes réseau.
+                    </p>
+                    {% if not app.user %}
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            <a href="{{ path('app_login') }}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Se connecter
+                            </a>
+                            <a href="{{ path('app_register') }}" class="btn btn-outline-light btn-lg">Créer un compte client</a>
+                        </div>
+                    {% endif %}
                 </div>
-                {% endif %}
+
+                {# Aperçu illustratif de la console (décoratif) #}
+                <div class="col-lg-6 d-none d-md-block" aria-hidden="true">
+                    <div class="om-preview">
+                        <div class="om-preview__window">
+                            <div class="om-preview__bar"><i></i><i></i><i></i><span class="ms-2">Console d'administration</span></div>
+                            <div class="om-preview__body">
+                                <div class="om-preview__kpi">
+                                    <span>Tickets</span>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="om-badge om-badge--info">Ouvert</span>
+                                        <span class="om-badge om-badge--warning">En cours</span>
+                                    </div>
+                                </div>
+                                <div class="om-preview__kpi">
+                                    <span>Demandes de ligne</span>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="om-badge om-badge--warning">En attente</span>
+                                    </div>
+                                </div>
+                                <div class="om-preview__kpi">
+                                    <span>Ports</span>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="om-badge om-badge--success">Libre</span>
+                                        <span class="om-badge om-badge--info">Occupé</span>
+                                    </div>
+                                </div>
+                                <div class="om-preview__wide">
+                                    <strong>Saturation par site</strong>
+                                    <div class="d-flex align-items-center gap-2"><span class="om-mono" style="width: 64px">Site A</span><div class="flex-grow-1">{{ ui.meter(42) }}</div></div>
+                                    <div class="d-flex align-items-center gap-2"><span class="om-mono" style="width: 64px">Site B</span><div class="flex-grow-1">{{ ui.meter(76) }}</div></div>
+                                    <div class="d-flex align-items-center gap-2"><span class="om-mono" style="width: 64px">Site C</span><div class="flex-grow-1">{{ ui.meter(93) }}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<section class="py-5">
-    <div class="container py-4">
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="p-4 h-100" style="border-left: 3px solid #1FB6A6; background: #fff; border-radius: 0.4rem; border: 1px solid #E2E6EC; border-left: 3px solid #1FB6A6;">
-                    <h5 class="mb-2">Espace Client</h5>
-                    <p class="text-muted mb-0">
-                        Déposez une réclamation, suivez vos tickets et demandez l'installation d'une nouvelle ligne.
-                    </p>
-                </div>
+    <section class="py-5">
+        <div class="container py-lg-4">
+            <div class="text-center mb-5">
+                <div class="om-eyebrow justify-content-center">Trois espaces, un seul outil</div>
+                <h2 class="fw-bold" style="letter-spacing: -.02em;">Chacun voit ce dont il a besoin</h2>
             </div>
-            <div class="col-md-4">
-                <div class="p-4 h-100" style="background: #fff; border-radius: 0.4rem; border: 1px solid #E2E6EC; border-left: 3px solid #E8A33D;">
-                    <h5 class="mb-2">Espace Technicien</h5>
-                    <p class="text-muted mb-0">
-                        Localisez les pannes à proximité, qualifiez les lignes xDSL et mettez à jour vos interventions.
-                    </p>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <article class="om-role-card">
+                        <span class="om-icon-tile om-icon-tile--accent"><i class="bi bi-person" aria-hidden="true"></i></span>
+                        <h3>Espace client</h3>
+                        <p class="om-muted mb-0">Signalez une panne et suivez son traitement étape par étape.</p>
+                        <ul>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Dépôt de réclamations</li>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Suivi des tickets</li>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Demande de nouvelle ligne</li>
+                        </ul>
+                    </article>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="p-4 h-100" style="background: #fff; border-radius: 0.4rem; border: 1px solid #E2E6EC; border-left: 3px solid #10151F;">
-                    <h5 class="mb-2">Espace Administration</h5>
-                    <p class="text-muted mb-0">
-                        Gérez l'inventaire réseau, assignez les interventions et suivez la saturation des sites.
-                    </p>
+                <div class="col-md-4">
+                    <article class="om-role-card">
+                        <span class="om-icon-tile om-icon-tile--warning"><i class="bi bi-tools" aria-hidden="true"></i></span>
+                        <h3>Espace technicien</h3>
+                        <p class="om-muted mb-0">Intervenez au plus près grâce à la géolocalisation.</p>
+                        <ul>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Pannes à moins de 15 km</li>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Qualification de ligne xDSL</li>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Mise à jour des tickets</li>
+                        </ul>
+                    </article>
+                </div>
+                <div class="col-md-4">
+                    <article class="om-role-card">
+                        <span class="om-icon-tile om-icon-tile--navy"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+                        <h3>Espace administration</h3>
+                        <p class="om-muted mb-0">Pilotez l'inventaire, les interventions et la capacité.</p>
+                        <ul>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Inventaire et import Excel</li>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Affectation des tickets et des ports</li>
+                            <li><i class="bi bi-check2" aria-hidden="true"></i>Saturation et carte du réseau</li>
+                        </ul>
+                    </article>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<footer class="py-4 text-center text-muted border-top">
-    <small>OptiMSAN — Système de gestion réseau fixe & support technique</small>
+    <section class="pb-5">
+        <div class="container pb-lg-4 text-center">
+            <div class="om-eyebrow justify-content-center">Inventaire réseau</div>
+            <h2 class="fw-bold mb-4" style="letter-spacing: -.02em;">De la zone géographique jusqu'au port</h2>
+            <div class="om-chain">
+                <span class="om-chain__node"><i class="bi bi-map" aria-hidden="true"></i>Zone</span>
+                <i class="bi bi-chevron-right om-chain__arrow" aria-hidden="true"></i>
+                <span class="om-chain__node"><i class="bi bi-building" aria-hidden="true"></i>Site MSAN</span>
+                <i class="bi bi-chevron-right om-chain__arrow" aria-hidden="true"></i>
+                <span class="om-chain__node"><i class="bi bi-hdd-rack" aria-hidden="true"></i>Shelf</span>
+                <i class="bi bi-chevron-right om-chain__arrow" aria-hidden="true"></i>
+                <span class="om-chain__node"><i class="bi bi-cpu" aria-hidden="true"></i>Carte</span>
+                <i class="bi bi-chevron-right om-chain__arrow" aria-hidden="true"></i>
+                <span class="om-chain__node"><i class="bi bi-ethernet" aria-hidden="true"></i>Port</span>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="om-footer">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <span>OptiMSAN — Système de gestion réseau fixe &amp; support technique</span>
+        <span class="om-logo-chip"><img src="{{ asset('image/logo-tunisie-telecom2.webp') }}" alt="Tunisie Télécom"></span>
+    </div>
 </footer>
 {% endblock %}
+

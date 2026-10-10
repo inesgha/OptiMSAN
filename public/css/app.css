@@ -326,6 +326,7 @@ code {
 
 .form-control,
 .form-select {
+    background-color: #fff;
     border-color: var(--om-border-strong);
     border-radius: 8px;
     padding: .55rem .8rem;
@@ -1070,6 +1071,26 @@ a.om-kpi:hover {
 .om-gauge--sm::before { inset: 8px; }
 .om-gauge--sm .om-gauge__value { font-size: .85rem; }
 
+/* Barre empilée : répartition par état */
+.om-stack {
+    display: flex;
+    gap: 2px;
+    height: 10px;
+    border-radius: var(--om-radius-pill);
+    background: var(--om-neutral-bg);
+    overflow: hidden;
+}
+
+.om-stack__seg { height: 100%; }
+
+.om-stack__seg--info,    .om-legend__swatch--info    { background: #3B82F6; }
+.om-stack__seg--warning, .om-legend__swatch--warning { background: #F59E0B; }
+.om-stack__seg--success, .om-legend__swatch--success { background: #22C55E; }
+.om-stack__seg--danger,  .om-legend__swatch--danger  { background: #EF4444; }
+.om-stack__seg--violet,  .om-legend__swatch--violet  { background: #8B5CF6; }
+.om-stack__seg--neutral, .om-legend__swatch--neutral { background: #94A3B8; }
+.om-stack__seg--accent,  .om-legend__swatch--accent  { background: #14B8A6; }
+
 /* Légende colorée */
 .om-legend {
     display: flex;
@@ -1085,7 +1106,6 @@ a.om-kpi:hover {
     width: 10px;
     height: 10px;
     border-radius: 3px;
-    background: var(--swatch, var(--om-neutral));
 }
 
 /* 7. Tableaux, filtres, badges ---------------------------------------------- */

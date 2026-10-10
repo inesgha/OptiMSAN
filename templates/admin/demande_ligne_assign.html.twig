@@ -1,82 +1,113 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Gérer la demande {{ demande.codeDemande }}{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_demandes_ligne') }}">← Demandes de ligne</a>
-</nav>
+{% block content %}
+    {% set sousTitre %}
+        {{ ui.badge('demande', demande.etatDemande) }}
+        <span class="ms-1">{{ demande.typeOffre|libelle('offre') }}</span>
+    {% endset %}
+    {{ ui.page_header('Demande ' ~ demande.codeDemande, {
+        back_url: path('admin_demandes_ligne'),
+        back_label: 'Demandes de ligne',
+        subtitle: sousTitre,
+    }) }}
 
-<div class="container mt-4" style="max-width: 700px;">
-    <h1 class="mb-4">Demande {{ demande.codeDemande }}</h1>
+    <section class="om-card mb-4" aria-label="Avancement de la demande">
+        <div class="om-card__body py-4">
+            {{ ui.frise_demande(demande) }}
+        </div>
+    </section>
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
+    <div class="row g-4">
+        <div class="col-lg-7 d-flex flex-column gap-4">
+            <section class="om-card" aria-labelledby="titre-demande">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-demande"><i class="bi bi-card-text" aria-hidden="true"></i>Détails de la demande</h2>
+                </div>
+                <div class="om-card__body">
+                    <dl class="om-dl">
+                        <dt>Client</dt>
+                        <dd>{{ ui.personne(demande.client, demande.client ? demande.client.email : null) }}</dd>
+                        <dt>Offre demandée</dt>
+                        <dd>{{ demande.typeOffre|libelle('offre') }}</dd>
+                        <dt>Adresse d'installation</dt>
+                        <dd>{{ demande.adresseInstallation }}</dd>
+                        {% if demande.latitude and demande.longitude %}
+                            <dt>Position GPS</dt>
+                            <dd class="om-mono">{{ demande.latitude|number_format(5, '.') }}, {{ demande.longitude|number_format(5, '.') }}</dd>
+                        {% endif %}
+                        <dt>Demandée le</dt>
+                        <dd class="om-mono">{{ demande.dateDemande ? demande.dateDemande|date('d/m/Y à H:i') : '—' }}</dd>
+                    </dl>
+                </div>
+            </section>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <p><strong>Client :</strong> {{ demande.client ? demande.client.prenom ~ ' ' ~ demande.client.nom : '—' }}</p>
-            <p><strong>Offre demandée :</strong> {{ demande.typeOffre }}</p>
-            <p><strong>Adresse d'installation :</strong> {{ demande.adresseInstallation }}</p>
-            <p class="mb-0"><strong>Demandé le :</strong> {{ demande.dateDemande|date('d/m/Y H:i') }}</p>
+            <section class="om-card" aria-labelledby="titre-tests">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="titre-tests"><i class="bi bi-activity" aria-hidden="true"></i>Tests techniques réalisés</h2>
+                        <p class="om-card__subtitle">Qualification de la ligne avant installation</p>
+                    </div>
+                    <a href="{{ path('admin_demande_ligne_test_new', {'id': demande.id}) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>Nouveau test
+                    </a>
+                </div>
+                {% if tests|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table om-table om-table--compact">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Technicien</th>
+                                    <th scope="col">Standard</th>
+                                    <th scope="col" class="om-col-num">Débit ↓ / ↑</th>
+                                    <th scope="col">Qualité</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in tests %}
+                                    <tr>
+                                        <td class="om-mono text-nowrap">{{ test.dateTest|date('d/m/Y H:i') }}</td>
+                                        <td class="text-nowrap">{{ test.technicien ? test.technicien.prenom ~ ' ' ~ test.technicien.nom : '—' }}</td>
+                                        <td><span class="om-tag">{{ test.standard }}</span></td>
+                                        <td class="om-col-num om-mono text-nowrap">{{ test.channelRateDown }} / {{ test.channelRateUp }} <span class="om-muted">kbps</span></td>
+                                        <td>{{ ui.badge('qualite', test.qualiteGlobale) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="om-card__body om-muted mb-0">
+                        <i class="bi bi-info-circle me-1" aria-hidden="true"></i>Aucun test réalisé pour le moment.
+                    </p>
+                {% endif %}
+            </section>
+        </div>
+
+        <div class="col-lg-5">
+            <section class="om-card" aria-labelledby="titre-decision">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="titre-decision"><i class="bi bi-clipboard-check" aria-hidden="true"></i>Décision</h2>
+                        <p class="om-card__subtitle">Affectez un port et faites avancer la demande.</p>
+                    </div>
+                </div>
+                {{ form_start(form) }}
+                    <div class="om-card__body">
+                        {{ form_errors(form) }}
+                        {{ form_row(form.portMSAN, {'help': 'Seul un port « libre » peut être affecté ; il passe alors à « occupé ». Une demande refusée libère son port.'}) }}
+                        {{ form_row(form.etatDemande) }}
+                        {% include 'demande_ligne/_transitions.html.twig' %}
+                    </div>
+                    <div class="om-card__footer">
+                        <a href="{{ path('admin_demandes_ligne') }}" class="btn btn-outline-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Enregistrer</button>
+                    </div>
+                {{ form_end(form) }}
+            </section>
         </div>
     </div>
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Tests techniques réalisés</h5>
-        <a href="{{ path('admin_demande_ligne_test_new', {'id': demande.id}) }}" class="btn btn-sm btn-outline-primary">+ Nouveau test</a>
-    </div>
-
-    {% if tests|length > 0 %}
-    <table class="table table-sm table-bordered mb-4">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Technicien</th>
-                <th>Standard</th>
-                <th>Débit ↓/↑</th>
-                <th>Qualité</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for test in tests %}
-            <tr>
-                <td>{{ test.dateTest|date('d/m/Y H:i') }}</td>
-                <td>{{ test.technicien.prenom }} {{ test.technicien.nom }}</td>
-                <td>{{ test.standard }}</td>
-                <td>{{ test.channelRateDown }} / {{ test.channelRateUp }} kbps</td>
-                <td>
-                    <span class="badge bg-{{ test.qualiteGlobale == 'excellente' or test.qualiteGlobale == 'bonne' ? 'success' : (test.qualiteGlobale == 'moyenne' ? 'warning' : 'danger') }}">
-                        {{ test.qualiteGlobale }}
-                    </span>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="text-muted mb-4">Aucun test réalisé pour le moment.</p>
-    {% endif %}
-
-    <hr class="mb-4">
-
-    <h5 class="mb-3">Décision</h5>
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="mb-3">
-            {{ form_label(form.portMSAN) }}
-            {{ form_widget(form.portMSAN, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.portMSAN) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.etatDemande) }}
-            {{ form_widget(form.etatDemande, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.etatDemande) }}
-            {% include 'demande_ligne/_transitions.html.twig' %}
-            <div class="form-text">Seul un port « libre » peut être affecté ; il passe alors à « occupé ». Une demande refusée libère son port.</div>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
-    {{ form_end(form) }}
-</div>
 {% endblock %}

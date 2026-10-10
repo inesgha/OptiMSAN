@@ -1,36 +1,77 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Importer des ports MSAN{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
-</nav>
+{% block content %}
+    {{ ui.page_header('Import / Export Excel', {
+        eyebrow: 'Inventaire réseau',
+        icon: 'file-earmark-spreadsheet',
+        subtitle: 'Gérez l\'inventaire des ports MSAN en masse à partir d\'un fichier Excel (.xlsx).',
+    }) }}
 
-<div class="container mt-4" style="max-width: 700px;">
-    <h1 class="mb-4">Importer des ports MSAN (Excel)</h1>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <section class="om-card h-100" aria-labelledby="titre-import">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="titre-import"><i class="bi bi-upload" aria-hidden="true"></i>Importer des ports</h2>
+                        <p class="om-card__subtitle">Chaque ligne valide crée un port ; les lignes en erreur sont listées.</p>
+                    </div>
+                </div>
+                <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="_token" value="{{ csrf_token('import-ports') }}">
+                    <div class="om-card__body">
+                        <label for="fichier_excel" class="form-label required">Fichier Excel (.xlsx)</label>
+                        <input type="file" id="fichier_excel" name="fichier_excel" class="form-control" accept=".xlsx,.xls" required aria-describedby="aide-format">
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="alert alert-danger">{{ message }}</div>
-    {% endfor %}
-
-    <div class="alert alert-info">
-        <strong>Format attendu :</strong> un fichier .xlsx avec les colonnes dans cet ordre :
-        <br><code>ID (ignoré) | Numéro Port | Type Port | État Port | Date Affectation (AAAA-MM-JJ) | SlotCard ID</code>
-        <br><br>
-        <a href="{{ path('admin_export_ports') }}" class="btn btn-sm btn-outline-primary">Télécharger un modèle (export actuel)</a>
-    </div>
-
-    <form method="post" enctype="multipart/form-data">
-        <input type="hidden" name="_token" value="{{ csrf_token('import-ports') }}">
-        <div class="mb-3">
-            <label class="form-label">Fichier Excel (.xlsx)</label>
-            <input type="file" name="fichier_excel" class="form-control" accept=".xlsx,.xls" required>
+                        <h3 class="om-section-title mt-4">Colonnes attendues, dans cet ordre</h3>
+                        <div class="table-responsive" id="aide-format">
+                            <table class="table om-table om-table--compact border rounded-3 overflow-hidden">
+                                <thead>
+                                    <tr><th scope="col">Col.</th><th scope="col">Contenu</th><th scope="col">Exemple</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="om-mono">A</td><td>ID <span class="om-muted">(ignoré)</span></td><td class="om-mono om-muted">—</td></tr>
+                                    <tr><td class="om-mono">B</td><td>Numéro de port</td><td class="om-mono">12</td></tr>
+                                    <tr><td class="om-mono">C</td><td>Type de port</td><td class="om-mono">VDSL2</td></tr>
+                                    <tr><td class="om-mono">D</td><td>État : libre, occupe, panne, reserve</td><td class="om-mono">libre</td></tr>
+                                    <tr><td class="om-mono">E</td><td>Date d'affectation (AAAA-MM-JJ)</td><td class="om-mono">2026-10-01</td></tr>
+                                    <tr><td class="om-mono">F</td><td>ID de la carte (SlotCard)</td><td class="om-mono">3</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="om-card__footer">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-upload" aria-hidden="true"></i>Importer le fichier</button>
+                    </div>
+                </form>
+            </section>
         </div>
-        <button type="submit" class="btn btn-primary">Importer</button>
-    </form>
-</div>
+
+        <div class="col-lg-5 d-flex flex-column gap-4">
+            <section class="om-card" aria-labelledby="titre-export">
+                <div class="om-card__body d-flex gap-3">
+                    <span class="om-icon-tile om-icon-tile--success"><i class="bi bi-file-earmark-excel" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 class="om-card__title mb-1" id="titre-export">Exporter l'inventaire</h2>
+                        <p class="om-muted om-small">Téléchargez tous les ports au format .xlsx. Le fichier sert aussi de modèle pour l'import.</p>
+                        <a href="{{ path('admin_export_ports') }}" class="btn btn-outline-secondary"><i class="bi bi-download" aria-hidden="true"></i>Télécharger l'export</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="om-card" aria-labelledby="titre-regles">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-regles"><i class="bi bi-shield-check" aria-hidden="true"></i>Contrôles effectués</h2>
+                </div>
+                <ul class="om-list">
+                    <li class="om-list__item"><i class="bi bi-check2-circle text-success" aria-hidden="true"></i><span>La carte (SlotCard) doit exister.</span></li>
+                    <li class="om-list__item"><i class="bi bi-check2-circle text-success" aria-hidden="true"></i><span>Un numéro de port est unique sur une même carte.</span></li>
+                    <li class="om-list__item"><i class="bi bi-check2-circle text-success" aria-hidden="true"></i><span>Une carte ne dépasse jamais son nombre de ports.</span></li>
+                    <li class="om-list__item"><i class="bi bi-check2-circle text-success" aria-hidden="true"></i><span>Les règles de validation des ports s'appliquent ligne par ligne.</span></li>
+                </ul>
+            </section>
+        </div>
+    </div>
 {% endblock %}

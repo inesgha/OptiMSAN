@@ -1,4 +1,32 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+    <section class="om-card">
+        <div class="om-card__body">
+            {{ form_errors(form) }}
+
+            <h2 class="om-section-title">Identification</h2>
+            <div class="row gx-3">
+                <div class="col-md-6">{{ form_row(form.nomSite, {'label': 'Nom du site', 'attr': {'placeholder': 'Ex. MSAN_Ariana_Centre'}}) }}</div>
+                <div class="col-md-6">{{ form_row(form.adresseIp, {'label': 'Adresse IP', 'attr': {'class': 'om-mono', 'placeholder': '10.0.0.1'}}) }}</div>
+                <div class="col-md-6">{{ form_row(form.typeMSAN, {'label': 'Type de MSAN', 'attr': {'placeholder': 'Ex. MA5600T'}}) }}</div>
+                <div class="col-md-6">{{ form_row(form.constructeur, {'label': 'Constructeur', 'attr': {'placeholder': 'Ex. Huawei'}}) }}</div>
+            </div>
+            {{ form_row(form.zone, {'label': 'Zone'}) }}
+
+            <h2 class="om-section-title mt-3">Emplacement</h2>
+            {# Champs cachés remplis par la carte (id utilisés par _map_picker) #}
+            {{ form_widget(form.latitude, {'id': 'site_lat'}) }}
+            {{ form_widget(form.longitude, {'id': 'site_lng'}) }}
+            {% include '_map_picker.html.twig' with {
+                mapId: 'siteMap',
+                latFieldId: 'site_lat',
+                lngFieldId: 'site_lng',
+                label: 'Position du site'
+            } %}
+            {{ include('_ui/_erreurs_position.html.twig', {latitude: form.latitude, longitude: form.longitude}) }}
+        </div>
+        <div class="om-card__footer">
+            <a href="{{ path('app_site_m_s_a_n_index') }}" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>{{ button_label|default('Enregistrer') }}</button>
+        </div>
+    </section>
 {{ form_end(form) }}

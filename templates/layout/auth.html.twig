@@ -1,0 +1,53 @@
+{#
+    Écran partagé des pages d'authentification : présentation à gauche, formulaire à droite.
+    Les pages remplissent le bloc « auth » (et « form_class » pour un formulaire large).
+#}
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="om-auth">
+    <aside class="om-auth__aside">
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <a class="om-brand" href="{{ path('app_home') }}">
+                {{ include('_ui/_logo.html.twig', {sous_titre: 'Réseau d\'accès MSAN'}) }}
+            </a>
+            <span class="om-logo-chip">
+                <img src="{{ asset('image/logo-tunisie-telecom2.webp') }}" alt="Tunisie Télécom">
+            </span>
+        </div>
+
+        <div>
+            <h2 class="om-auth__headline">Le réseau fixe,<br><span>sous contrôle.</span></h2>
+            <p class="om-auth__lead">
+                Supervision de l'infrastructure MSAN, suivi des pannes et gestion
+                des demandes de ligne, en un seul espace.
+            </p>
+            <ul class="om-features">
+                <li>
+                    <span class="om-features__icon"><i class="bi bi-diagram-3" aria-hidden="true"></i></span>
+                    <div><strong>Inventaire hiérarchique</strong><span>Zone → Site MSAN → Shelf → Carte → Port</span></div>
+                </li>
+                <li>
+                    <span class="om-features__icon"><i class="bi bi-broadcast" aria-hidden="true"></i></span>
+                    <div><strong>Interventions géolocalisées</strong><span>Les pannes ouvertes à moins de 15 km du technicien</span></div>
+                </li>
+                <li>
+                    <span class="om-features__icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
+                    <div><strong>Suivi de la saturation</strong><span>Taux d'occupation des ports, site par site</span></div>
+                </li>
+            </ul>
+        </div>
+
+        <p class="om-auth__foot mb-0">OptiMSAN — Système de gestion réseau fixe &amp; support technique</p>
+    </aside>
+
+    <main class="om-auth__main" id="contenu" tabindex="-1">
+        <div class="om-auth__form{% block form_class %}{% endblock %}">
+            <a class="om-auth__mobile-brand" href="{{ path('app_home') }}">
+                {{ include('_ui/_logo.html.twig') }}
+            </a>
+            {% block auth %}{% endblock %}
+        </div>
+    </main>
+</div>
+{% endblock %}

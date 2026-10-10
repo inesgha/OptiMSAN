@@ -1,44 +1,52 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Zones{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('app_zone_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>Ajouter une zone</a>
+    {% endset %}
+    {{ ui.page_header('Zones', {
+        eyebrow: 'Inventaire réseau',
+        icon: 'map',
+        subtitle: 'Zones géographiques auxquelles sont rattachés les sites MSAN.',
+        actions: actions,
+    }) }}
+    {{ ui.hierarchie('zone') }}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Zones</h1>
-        <a href="{{ path('app_zone_new') }}" class="btn btn-primary">+ Ajouter une zone</a>
-    </div>
-
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Nom de la zone</th>
-                <th>Code postal</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for zone in zones %}
-            <tr>
-                <td><code>{{ zone.id }}</code></td>
-                <td>{{ zone.nomZone }}</td>
-                <td>{{ zone.codePostal }}</td>
-                <td>
-                    <a href="{{ path('app_zone_show', {'id': zone.id}) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
-                    <a href="{{ path('app_zone_edit', {'id': zone.id}) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
-                </td>
-            </tr>
+    <section class="om-card" data-controller="table-filter" aria-label="Liste des zones">
+        {% if zones is empty %}
+            {{ ui.empty_state('Aucune zone enregistrée', 'Commencez par créer une zone : les sites MSAN y seront rattachés.', 'map', path('app_zone_new'), 'Ajouter une zone') }}
         {% else %}
-            <tr>
-                <td colspan="4" class="text-center text-muted py-4">Aucune zone enregistrée</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            {{ ui.toolbar('Rechercher une zone, un code postal…') }}
+            <div class="table-responsive">
+                <table class="table om-table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Zone</th>
+                            <th scope="col">Code postal</th>
+                            <th scope="col" class="om-col-actions"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for zone in zones %}
+                            <tr data-table-filter-target="row">
+                                <td>
+                                    <span class="om-cell-main">{{ zone.nomZone }}</span>
+                                    <span class="om-cell-sub">Zone n°{{ zone.id }}</span>
+                                </td>
+                                <td class="om-mono">{{ zone.codePostal }}</td>
+                                <td class="om-col-actions">
+                                    <a href="{{ path('app_zone_show', {'id': zone.id}) }}" class="btn btn-ghost btn-sm"><i class="bi bi-eye" aria-hidden="true"></i>Voir<span class="visually-hidden"> la zone {{ zone.nomZone }}</span></a>
+                                    <a href="{{ path('app_zone_edit', {'id': zone.id}) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil" aria-hidden="true"></i>Modifier<span class="visually-hidden"> la zone {{ zone.nomZone }}</span></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {{ ui.aucun_resultat(3) }}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

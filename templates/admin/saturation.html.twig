@@ -1,111 +1,129 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Dashboard de saturation{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
-</nav>
+{% block content %}
+    {{ ui.page_header('Saturation du réseau', {
+        eyebrow: 'Pilotage',
+        icon: 'speedometer2',
+        subtitle: 'Taux d\'occupation des ports MSAN, site par site.',
+    }) }}
 
-<div class="container mt-4">
-    <h1 class="mb-4">Dashboard de saturation réseau</h1>
+    {% set totalLibres = 0 %}
+    {% set totalPanne = 0 %}
+    {% for site in sites %}
+        {% set totalLibres = totalLibres + site.ports_libres %}
+        {% set totalPanne = totalPanne + site.ports_en_panne %}
+    {% endfor %}
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-primary text-center">
-                <div class="card-body">
-                    <h6 class="text-muted">Ports totaux</h6>
-                    <h2>{{ totalPorts }}</h2>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <section class="om-card h-100" aria-labelledby="titre-global">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-global"><i class="bi bi-pie-chart" aria-hidden="true"></i>Taux de saturation global</h2>
                 </div>
-            </div>
+                <div class="om-card__body d-flex flex-column align-items-center gap-4">
+                    {{ ui.gauge(tauxGlobal, 'des ports occupés') }}
+                    <dl class="om-dl w-100">
+                        <dt>Ports totaux</dt><dd class="om-mono text-end">{{ totalPorts }}</dd>
+                        <dt>Ports occupés</dt><dd class="om-mono text-end">{{ totalOccupes }}</dd>
+                        <dt>Ports libres</dt><dd class="om-mono text-end">{{ totalLibres }}</dd>
+                        <dt>Ports en panne</dt><dd class="om-mono text-end">{{ totalPanne }}</dd>
+                    </dl>
+                    <div class="om-legend">
+                        <span class="om-legend__item"><span class="om-legend__swatch om-legend__swatch--success"></span>&lt; 70 %</span>
+                        <span class="om-legend__item"><span class="om-legend__swatch om-legend__swatch--warning"></span>70 à 90 %</span>
+                        <span class="om-legend__item"><span class="om-legend__swatch om-legend__swatch--danger"></span>≥ 90 %</span>
+                    </div>
+                </div>
+            </section>
         </div>
-        <div class="col-md-4">
-            <div class="card border-danger text-center">
-                <div class="card-body">
-                    <h6 class="text-muted">Ports occupés</h6>
-                    <h2>{{ totalOccupes }}</h2>
+        <div class="col-lg-8">
+            <section class="om-card h-100" aria-labelledby="titre-graphique">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="titre-graphique"><i class="bi bi-bar-chart" aria-hidden="true"></i>Ports par site</h2>
+                        <p class="om-card__subtitle">Occupés, libres et en panne</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-{{ tauxGlobal >= 80 ? 'danger' : (tauxGlobal >= 50 ? 'warning' : 'success') }} text-center">
-                <div class="card-body">
-                    <h6 class="text-muted">Taux de saturation global</h6>
-                    <h2>{{ tauxGlobal }}%</h2>
+                <div class="om-card__body">
+                    {% if sites is empty %}
+                        {{ ui.empty_state('Aucun site enregistré', 'Ajoutez des sites MSAN pour suivre leur saturation.', 'building', path('app_site_m_s_a_n_new'), 'Ajouter un site') }}
+                    {% else %}
+                        <div style="position: relative; height: 300px;">
+                            <canvas id="saturationChart" role="img" aria-label="Graphique des ports occupés, libres et en panne par site MSAN"></canvas>
+                        </div>
+                    {% endif %}
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 
-    <canvas id="saturationChart" height="100"></canvas>
+    {% if sites is not empty %}
+        <section class="om-card" data-controller="table-filter" aria-label="Saturation par site">
+            {{ ui.toolbar('Rechercher un site…', {'ok': 'Normal (< 70 %)', 'warn': 'Élevé (70 à 90 %)', 'crit': 'Critique (≥ 90 %)'}, 'Filtrer par niveau de saturation') }}
+            <div class="table-responsive">
+                <table class="table om-table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Site MSAN</th>
+                            <th scope="col">Type</th>
+                            <th scope="col" class="om-col-num">Total</th>
+                            <th scope="col" class="om-col-num">Occupés</th>
+                            <th scope="col" class="om-col-num">Libres</th>
+                            <th scope="col" class="om-col-num">En panne</th>
+                            <th scope="col" style="min-width: 220px;">Taux de saturation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for site in sites %}
+                            {% set taux = site.total_ports > 0 ? (site.ports_occupes / site.total_ports * 100)|round(1) : 0 %}
+                            <tr data-table-filter-target="row" data-etat="{{ ui.niveau(taux)|trim }}">
+                                <td class="om-cell-main">{{ site.nom_site }}</td>
+                                <td><span class="om-tag">{{ site.type_msan }}</span></td>
+                                <td class="om-col-num">{{ site.total_ports }}</td>
+                                <td class="om-col-num">{{ site.ports_occupes }}</td>
+                                <td class="om-col-num">{{ site.ports_libres }}</td>
+                                <td class="om-col-num">{{ site.ports_en_panne }}</td>
+                                <td>{{ ui.meter(taux, 'Saturation du site ' ~ site.nom_site) }}</td>
+                            </tr>
+                        {% endfor %}
+                        {{ ui.aucun_resultat(7) }}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}
 
-    <table class="table table-striped table-hover align-middle mt-5">
-        <thead class="table-dark">
-            <tr>
-                <th>Site MSAN</th>
-                <th>Type</th>
-                <th>Total ports</th>
-                <th>Occupés</th>
-                <th>Libres</th>
-                <th>En panne</th>
-                <th>Taux de saturation</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for site in sites %}
-            {% set taux = site.total_ports > 0 ? (site.ports_occupes / site.total_ports * 100)|round(1) : 0 %}
-            <tr>
-                <td>{{ site.nom_site }}</td>
-                <td><span class="badge bg-info text-dark">{{ site.type_msan }}</span></td>
-                <td>{{ site.total_ports }}</td>
-                <td>{{ site.ports_occupes }}</td>
-                <td>{{ site.ports_libres }}</td>
-                <td>{{ site.ports_en_panne }}</td>
-                <td>
-                    <div class="progress" style="height: 20px;">
-                        <div class="progress-bar bg-{{ taux >= 80 ? 'danger' : (taux >= 50 ? 'warning' : 'success') }}"
-                             style="width: {{ taux }}%;">
-                            {{ taux }}%
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="7" class="text-center text-muted py-4">Aucun site enregistré</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+{% block javascripts %}
+    {% if sites is not empty %}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script>
+            Chart.defaults.font.family = "'IBM Plex Sans', system-ui, sans-serif";
+            Chart.defaults.color = '#526075';
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script>
-    const ctx = document.getElementById('saturationChart');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [{% for site in sites %}'{{ site.nom_site|escape('js') }}',{% endfor %}],
-            datasets: [
-                {
-                    label: 'Ports occupés',
-                    data: [{% for site in sites %}{{ site.ports_occupes }},{% endfor %}],
-                    backgroundColor: '#dc3545',
+            new Chart(document.getElementById('saturationChart'), {
+                type: 'bar',
+                data: {
+                    labels: {{ sites|map(s => s.nom_site)|json_encode|raw }},
+                    datasets: [
+                        { label: 'Ports occupés', data: {{ sites|map(s => s.ports_occupes|default(0) + 0)|json_encode|raw }}, backgroundColor: '#3B82F6', borderRadius: 4 },
+                        { label: 'Ports libres', data: {{ sites|map(s => s.ports_libres|default(0) + 0)|json_encode|raw }}, backgroundColor: '#22C55E', borderRadius: 4 },
+                        { label: 'Ports en panne', data: {{ sites|map(s => s.ports_en_panne|default(0) + 0)|json_encode|raw }}, backgroundColor: '#EF4444', borderRadius: 4 },
+                    ],
                 },
-                {
-                    label: 'Ports libres',
-                    data: [{% for site in sites %}{{ site.ports_libres }},{% endfor %}],
-                    backgroundColor: '#198754',
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#EEF2F6' } },
+                    },
                 },
-            ],
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: { stacked: true },
-                y: { stacked: true, beginAtZero: true },
-            },
-        },
-    });
-</script>
+            });
+        </script>
+    {% endif %}
 {% endblock %}

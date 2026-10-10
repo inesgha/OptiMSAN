@@ -1,35 +1,31 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Zone {{ zone.nomZone }}{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('app_zone_index') }}">← Zones</a>
-</nav>
+{% block content %}
+    <div class="om-narrow">
+        {% set actions %}
+            <a href="{{ path('app_zone_edit', {'id': zone.id}) }}" class="btn btn-primary"><i class="bi bi-pencil" aria-hidden="true"></i>Modifier</a>
+        {% endset %}
+        {{ ui.page_header(zone.nomZone, {
+            back_url: path('app_zone_index'),
+            back_label: 'Zones',
+            eyebrow: 'Zone',
+            icon: 'map',
+            actions: actions,
+        }) }}
 
-<div class="container mt-4" style="max-width: 600px;">
-    <h1 class="mb-4">{{ zone.nomZone }}</h1>
+        <section class="om-card">
+            <div class="om-card__body">
+                <dl class="om-dl">
+                    <dt>Identifiant</dt><dd><code>{{ zone.id }}</code></dd>
+                    <dt>Nom de la zone</dt><dd>{{ zone.nomZone }}</dd>
+                    <dt>Code postal</dt><dd class="om-mono">{{ zone.codePostal }}</dd>
+                </dl>
+            </div>
+        </section>
 
-    <table class="table table-bordered">
-        <tbody>
-            <tr>
-                <th style="width: 200px;">ID</th>
-                <td><code>{{ zone.id }}</code></td>
-            </tr>
-            <tr>
-                <th>Nom de la zone</th>
-                <td>{{ zone.nomZone }}</td>
-            </tr>
-            <tr>
-                <th>Code postal</th>
-                <td>{{ zone.codePostal }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_zone_index') }}" class="btn btn-outline-secondary">Retour à la liste</a>
-    <a href="{{ path('app_zone_edit', {'id': zone.id}) }}" class="btn btn-primary">Modifier</a>
-
-    {{ include('zone/_delete_form.html.twig') }}
-</div>
+        {{ include('zone/_delete_form.html.twig') }}
+    </div>
 {% endblock %}

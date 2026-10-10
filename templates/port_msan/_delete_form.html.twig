@@ -1,5 +1,7 @@
-
-<form method="post" action="{{ path('app_port_m_s_a_n_delete', {'id': port_m_s_a_n.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce port ?');" class="mt-3">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ port_m_s_a_n.id) }}">
-    <button class="btn btn-outline-danger btn-sm">Supprimer ce port</button>
-</form>
+{{ include('_ui/_delete_zone.html.twig', {
+    action: path('app_port_m_s_a_n_delete', {'id': port_m_s_a_n.id}),
+    token: 'delete' ~ port_m_s_a_n.id,
+    titre: 'Supprimer ce port',
+    texte: 'Action définitive, impossible si le port est lié à une demande, une réclamation ou un test.',
+    confirmation: 'Voulez-vous vraiment supprimer ce port ?',
+}) }}

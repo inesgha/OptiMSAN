@@ -1,19 +1,15 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Modifier le Port MSAN{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('app_port_m_s_a_n_index') }}">← Ports MSAN</a>
-</nav>
-
-<div class="container mt-4" style="max-width: 600px;">
-    <h1 class="mb-4">Modifier le Port MSAN</h1>
-
-    {{ include('port_msan/_form.html.twig', {'button_label': 'Enregistrer'}) }}
-
-    <a href="{{ path('app_port_m_s_a_n_index') }}" class="btn btn-outline-secondary mt-2">← Retour à la liste</a>
-
-    {{ include('port_msan/_delete_form.html.twig') }}
-</div>
+{% block content %}
+    <div class="om-narrow">
+        {{ ui.page_header('Modifier le port', {
+            back_url: path('app_port_m_s_a_n_show', {'id': port_m_s_a_n.id}),
+            back_label: 'Port n°' ~ port_m_s_a_n.numeroPort,
+        }) }}
+        {{ include('port_msan/_form.html.twig', {'button_label': 'Enregistrer'}) }}
+        {{ include('port_msan/_delete_form.html.twig') }}
+    </div>
 {% endblock %}

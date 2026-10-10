@@ -1,76 +1,108 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Gestion de l'équipe{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('admin_create_admin') }}" class="btn btn-outline-secondary"><i class="bi bi-shield-plus" aria-hidden="true"></i>Nouvel administrateur</a>
+        <a href="{{ path('admin_create_technicien') }}" class="btn btn-primary"><i class="bi bi-person-plus" aria-hidden="true"></i>Nouveau technicien</a>
+    {% endset %}
+    {{ ui.page_header('Équipe', {
+        eyebrow: 'Administration',
+        icon: 'people',
+        subtitle: 'Comptes des techniciens de terrain et des administrateurs.',
+        actions: actions,
+    }) }}
 
-<div class="container mt-4">
-    <h1 class="mb-4">Gestion de l'équipe</h1>
-
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="alert alert-danger">{{ message }}</div>
-    {% endfor %}
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5>Administrateurs</h5>
-        <a href="{{ path('admin_create_admin') }}" class="btn btn-sm btn-primary">+ Nouvel Admin</a>
-    </div>
-    <table class="table table-striped mb-5">
-        <thead class="table-dark">
-            <tr><th>Nom</th><th>Email</th><th>Niveau d'accès</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-        {% for admin in administrateurs %}
-            <tr>
-                <td>{{ admin.prenom }} {{ admin.nom }}</td>
-                <td>{{ admin.email }}</td>
-                <td>{{ admin.niveauAcces }}</td>
-                <td>
-                    <span class="badge bg-secondary">Protégé</span>
-                </td>
-            </tr>
+    <section class="om-card mb-4" data-controller="table-filter" aria-labelledby="titre-techniciens">
+        <div class="om-card__header">
+            <h2 class="om-card__title" id="titre-techniciens"><i class="bi bi-person-badge" aria-hidden="true"></i>Techniciens</h2>
+            <span class="om-badge om-badge--neutral">{{ techniciens|length }}</span>
+        </div>
+        {% if techniciens is empty %}
+            {{ ui.empty_state('Aucun technicien', 'Créez un compte technicien pour pouvoir lui assigner des tickets.', 'person-badge', path('admin_create_technicien'), 'Nouveau technicien') }}
         {% else %}
-            <tr><td colspan="4" class="text-center text-muted py-3">Aucun administrateur</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            {{ ui.toolbar('Rechercher un nom, un e-mail, un matricule…', {'1': 'Disponible', '0': 'Indisponible'}, 'Filtrer par disponibilité') }}
+            <div class="table-responsive">
+                <table class="table om-table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Technicien</th>
+                            <th scope="col">Matricule</th>
+                            <th scope="col">Téléphone</th>
+                            <th scope="col">Position GPS</th>
+                            <th scope="col">Disponibilité</th>
+                            <th scope="col" class="om-col-actions"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for technicien in techniciens %}
+                            <tr data-table-filter-target="row" data-etat="{{ technicien.disponible ? '1' : '0' }}">
+                                <td class="text-nowrap">{{ ui.personne(technicien, technicien.email) }}</td>
+                                <td><code>{{ technicien.matricule }}</code></td>
+                                <td class="om-mono">{{ technicien.telephone ?: '—' }}</td>
+                                <td class="om-mono om-small text-nowrap">
+                                    {% if technicien.latitudeActuelle is not null and technicien.longitudeActuelle is not null %}
+                                        {{ technicien.latitudeActuelle|number_format(4, '.') }}, {{ technicien.longitudeActuelle|number_format(4, '.') }}
+                                    {% else %}
+                                        <span class="om-muted">Non renseignée</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ ui.disponibilite(technicien.disponible) }}</td>
+                                <td class="om-col-actions">
+                                    <form method="post" action="{{ path('admin_equipe_delete', {'id': technicien.id}) }}" class="d-inline"
+                                          onsubmit="return confirm('Supprimer le compte de {{ (technicien.prenom ~ ' ' ~ technicien.nom)|e('js') }} ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ technicien.id) }}">
+                                        <button class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash3" aria-hidden="true"></i>Supprimer<span class="visually-hidden"> {{ technicien.prenom }} {{ technicien.nom }}</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {{ ui.aucun_resultat(6) }}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5>Techniciens</h5>
-        <a href="{{ path('admin_create_technicien') }}" class="btn btn-sm btn-primary">+ Nouveau Technicien</a>
-    </div>
-    <table class="table table-striped">
-        <thead class="table-dark">
-            <tr><th>Nom</th><th>Email</th><th>Matricule</th><th>Disponible</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-        {% for technicien in techniciens %}
-            <tr>
-                <td>{{ technicien.prenom }} {{ technicien.nom }}</td>
-                <td>{{ technicien.email }}</td>
-                <td><code>{{ technicien.matricule }}</code></td>
-                <td>
-                    <span class="badge bg-{{ technicien.disponible ? 'success' : 'secondary' }}">
-                        {{ technicien.disponible ? 'Oui' : 'Non' }}
-                    </span>
-                </td>
-                <td>
-                    <form method="post" action="{{ path('admin_equipe_delete', {'id': technicien.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer ce technicien ?');">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ technicien.id) }}">
-                        <button class="btn btn-sm btn-outline-danger">Supprimer</button>
-                    </form>
-                </td>
-            </tr>
+    <section class="om-card" aria-labelledby="titre-admins">
+        <div class="om-card__header">
+            <div>
+                <h2 class="om-card__title" id="titre-admins"><i class="bi bi-shield-lock" aria-hidden="true"></i>Administrateurs</h2>
+                <p class="om-card__subtitle">Un administrateur ne peut pas supprimer le compte d'un autre administrateur.</p>
+            </div>
+            <span class="om-badge om-badge--neutral">{{ administrateurs|length }}</span>
+        </div>
+        {% if administrateurs is empty %}
+            {{ ui.empty_state('Aucun administrateur', null, 'shield-lock') }}
         {% else %}
-            <tr><td colspan="5" class="text-center text-muted py-3">Aucun technicien</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            <div class="table-responsive">
+                <table class="table om-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Administrateur</th>
+                            <th scope="col">Téléphone</th>
+                            <th scope="col">Niveau d'accès</th>
+                            <th scope="col" class="om-col-actions">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for admin in administrateurs %}
+                            <tr>
+                                <td class="text-nowrap">{{ ui.personne(admin, admin.email) }}</td>
+                                <td class="om-mono">{{ admin.telephone ?: '—' }}</td>
+                                <td><span class="om-tag">Niveau {{ admin.niveauAcces ?? '—' }}</span></td>
+                                <td class="om-col-actions">
+                                    <span class="om-badge om-badge--neutral"><i class="bi bi-lock-fill" aria-hidden="true"></i>Protégé</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

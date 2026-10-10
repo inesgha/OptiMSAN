@@ -1,5 +1,7 @@
-
-<form method="post" action="{{ path('app_site_m_s_a_n_delete', {'id': site_m_s_a_n.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce site ?');" class="mt-3">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ site_m_s_a_n.id) }}">
-    <button class="btn btn-outline-danger btn-sm">Supprimer ce site</button>
-</form>
+{{ include('_ui/_delete_zone.html.twig', {
+    action: path('app_site_m_s_a_n_delete', {'id': site_m_s_a_n.id}),
+    token: 'delete' ~ site_m_s_a_n.id,
+    titre: 'Supprimer ce site',
+    texte: 'Action définitive, impossible tant que des shelves y sont installés.',
+    confirmation: 'Voulez-vous vraiment supprimer ce site ?',
+}) }}

@@ -1,27 +1,37 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Shelf {{ shelf.numeroShelf }}{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('app_shelf_index') }}">← Shelves</a>
-</nav>
+{% block content %}
+    <div class="om-narrow">
+        {% set actions %}
+            <a href="{{ path('app_shelf_edit', {'id': shelf.id}) }}" class="btn btn-primary"><i class="bi bi-pencil" aria-hidden="true"></i>Modifier</a>
+        {% endset %}
+        {{ ui.page_header('Shelf n°' ~ shelf.numeroShelf, {
+            back_url: path('app_shelf_index'),
+            back_label: 'Shelves',
+            eyebrow: 'Shelf',
+            icon: 'hdd-rack',
+            actions: actions,
+        }) }}
 
-<div class="container mt-4" style="max-width: 600px;">
-    <h1 class="mb-4">Shelf n°{{ shelf.numeroShelf }}</h1>
+        <section class="om-card">
+            <div class="om-card__body">
+                <dl class="om-dl">
+                    <dt>Identifiant</dt><dd><code>{{ shelf.id }}</code></dd>
+                    <dt>Numéro de shelf</dt><dd>{{ shelf.numeroShelf }}</dd>
+                    <dt>Adresse IP (sous-réseau)</dt><dd><code>{{ shelf.adresseIpSub }}</code></dd>
+                    <dt>Site MSAN</dt>
+                    <dd>
+                        {% if shelf.siteMSAN %}
+                            <a href="{{ path('app_site_m_s_a_n_show', {'id': shelf.siteMSAN.id}) }}">{{ shelf.siteMSAN.nomSite }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </section>
 
-    <table class="table table-bordered">
-        <tbody>
-            <tr><th style="width: 200px;">ID</th><td><code>{{ shelf.id }}</code></td></tr>
-            <tr><th>Numéro Shelf</th><td>{{ shelf.numeroShelf }}</td></tr>
-            <tr><th>Adresse IP Sub</th><td><code>{{ shelf.adresseIpSub }}</code></td></tr>
-            <tr><th>Site MSAN</th><td>{{ shelf.siteMSAN ? shelf.siteMSAN.nomSite : '—' }}</td></tr>
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_shelf_index') }}" class="btn btn-outline-secondary">Retour à la liste</a>
-    <a href="{{ path('app_shelf_edit', {'id': shelf.id}) }}" class="btn btn-primary">Modifier</a>
-
-    {{ include('shelf/_delete_form.html.twig') }}
-</div>
+        {{ include('shelf/_delete_form.html.twig') }}
+    </div>
 {% endblock %}

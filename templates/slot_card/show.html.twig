@@ -1,28 +1,39 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}SlotCard {{ slot_card.numeroSlot }}{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('app_slot_card_index') }}">← SlotCards</a>
-</nav>
+{% block content %}
+    <div class="om-narrow">
+        {% set actions %}
+            <a href="{{ path('app_slot_card_edit', {'id': slot_card.id}) }}" class="btn btn-primary"><i class="bi bi-pencil" aria-hidden="true"></i>Modifier</a>
+        {% endset %}
+        {{ ui.page_header('Slot n°' ~ slot_card.numeroSlot, {
+            back_url: path('app_slot_card_index'),
+            back_label: 'Cartes',
+            eyebrow: 'Carte',
+            icon: 'cpu',
+            actions: actions,
+        }) }}
 
-<div class="container mt-4" style="max-width: 600px;">
-    <h1 class="mb-4">SlotCard n°{{ slot_card.numeroSlot }}</h1>
+        <section class="om-card">
+            <div class="om-card__body">
+                <dl class="om-dl">
+                    <dt>Identifiant</dt><dd><code>{{ slot_card.id }}</code> <span class="om-muted om-small">— à utiliser dans l'import Excel</span></dd>
+                    <dt>Numéro de slot</dt><dd>{{ slot_card.numeroSlot }}</dd>
+                    <dt>Type de carte</dt><dd><span class="om-tag">{{ slot_card.typeCarte }}</span></dd>
+                    <dt>Nombre de ports</dt><dd>{{ slot_card.nombrePortsTotal }}</dd>
+                    <dt>Shelf</dt>
+                    <dd>
+                        {% if slot_card.shelf %}
+                            <a href="{{ path('app_shelf_show', {'id': slot_card.shelf.id}) }}">Shelf n°{{ slot_card.shelf.numeroShelf }}</a>
+                            {% if slot_card.shelf.siteMSAN %}<span class="om-cell-sub">{{ slot_card.shelf.siteMSAN.nomSite }}</span>{% endif %}
+                        {% else %}—{% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </section>
 
-    <table class="table table-bordered">
-        <tbody>
-            <tr><th style="width: 220px;">ID</th><td><code>{{ slot_card.id }}</code></td></tr>
-            <tr><th>Numéro Slot</th><td>{{ slot_card.numeroSlot }}</td></tr>
-            <tr><th>Type de carte</th><td><span class="badge bg-info text-dark">{{ slot_card.typeCarte }}</span></td></tr>
-            <tr><th>Nombre de ports</th><td>{{ slot_card.nombrePortsTotal }}</td></tr>
-            <tr><th>Shelf</th><td>{{ slot_card.shelf ? 'Shelf n°' ~ slot_card.shelf.numeroShelf : '—' }}</td></tr>
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_slot_card_index') }}" class="btn btn-outline-secondary">Retour à la liste</a>
-    <a href="{{ path('app_slot_card_edit', {'id': slot_card.id}) }}" class="btn btn-primary">Modifier</a>
-
-    {{ include('slot_card/_delete_form.html.twig') }}
-</div>
+        {{ include('slot_card/_delete_form.html.twig') }}
+    </div>
 {% endblock %}

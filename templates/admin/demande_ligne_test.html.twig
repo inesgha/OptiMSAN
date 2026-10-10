@@ -1,38 +1,53 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/admin.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Tester la ligne — {{ demande.codeDemande }}{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="{{ path('admin_demande_ligne_assign', {'id': demande.id}) }}">← Retour à la demande</a>
-</nav>
+{% block content %}
+    <div class="om-narrow">
+        {{ ui.page_header('Test technique', {
+            back_url: path('admin_demande_ligne_assign', {'id': demande.id}),
+            back_label: 'Demande ' ~ demande.codeDemande,
+            subtitle: 'Enregistrez les mesures relevées sur la ligne avant installation.',
+        }) }}
 
-<div class="container mt-4" style="max-width: 700px;">
-    <h1 class="mb-4">Test technique — {{ demande.codeDemande }}</h1>
+        {{ form_start(form) }}
+            <section class="om-card">
+                <div class="om-card__body">
+                    {{ form_errors(form) }}
 
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="row">
-            <div class="col-md-6 mb-3">{{ form_label(form.technicien) }}{{ form_widget(form.technicien, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.technicien) }}</div>
-            <div class="col-md-6 mb-3">{{ form_label(form.portMSAN) }}{{ form_widget(form.portMSAN, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.portMSAN) }}</div>
-        </div>
-        <div class="mb-3">{{ form_label(form.standard) }}{{ form_widget(form.standard, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.standard) }}</div>
-        <div class="row">
-            <div class="col-md-6 mb-3">{{ form_label(form.channelRateDown) }}{{ form_widget(form.channelRateDown, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.channelRateDown) }}</div>
-            <div class="col-md-6 mb-3">{{ form_label(form.channelRateUp) }}{{ form_widget(form.channelRateUp, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.channelRateUp) }}</div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">{{ form_label(form.snrMarginDown) }}{{ form_widget(form.snrMarginDown, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.snrMarginDown) }}</div>
-            <div class="col-md-6 mb-3">{{ form_label(form.snrMarginUp) }}{{ form_widget(form.snrMarginUp, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.snrMarginUp) }}</div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">{{ form_label(form.attenuationDown) }}{{ form_widget(form.attenuationDown, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.attenuationDown) }}</div>
-            <div class="col-md-6 mb-3">{{ form_label(form.attenuationUp) }}{{ form_widget(form.attenuationUp, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.attenuationUp) }}</div>
-        </div>
-        <div class="mb-3">{{ form_label(form.distanceKm) }}{{ form_widget(form.distanceKm, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.distanceKm) }}</div>
-        <div class="mb-3">{{ form_label(form.qualiteGlobale) }}{{ form_widget(form.qualiteGlobale, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.qualiteGlobale) }}</div>
+                    <h2 class="om-section-title">Contexte</h2>
+                    <div class="row gx-3">
+                        <div class="col-md-6">{{ form_row(form.technicien) }}</div>
+                        <div class="col-md-6">{{ form_row(form.portMSAN) }}</div>
+                    </div>
+                    {{ form_row(form.standard, {'attr': {'placeholder': 'VDSL2'}}) }}
 
-        <button type="submit" class="btn btn-primary">Enregistrer le test</button>
-    {{ form_end(form) }}
-</div>
+                    <h2 class="om-section-title mt-3">Débits mesurés</h2>
+                    <div class="row gx-3">
+                        <div class="col-md-6">{{ form_row(form.channelRateDown) }}</div>
+                        <div class="col-md-6">{{ form_row(form.channelRateUp) }}</div>
+                    </div>
+
+                    <h2 class="om-section-title mt-3">Qualité du signal</h2>
+                    <div class="row gx-3">
+                        <div class="col-md-6">{{ form_row(form.snrMarginDown) }}</div>
+                        <div class="col-md-6">{{ form_row(form.snrMarginUp) }}</div>
+                        <div class="col-md-6">{{ form_row(form.attenuationDown) }}</div>
+                        <div class="col-md-6">{{ form_row(form.attenuationUp) }}</div>
+                    </div>
+
+                    <h2 class="om-section-title mt-3">Synthèse</h2>
+                    <div class="row gx-3">
+                        <div class="col-md-6">{{ form_row(form.distanceKm) }}</div>
+                        <div class="col-md-6">{{ form_row(form.qualiteGlobale) }}</div>
+                    </div>
+                </div>
+                <div class="om-card__footer">
+                    <a href="{{ path('admin_demande_ligne_assign', {'id': demande.id}) }}" class="btn btn-outline-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Enregistrer le test</button>
+                </div>
+            </section>
+        {{ form_end(form) }}
+    </div>
 {% endblock %}

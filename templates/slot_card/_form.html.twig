@@ -1,21 +1,17 @@
 {{ form_start(form) }}
-    {{ form_errors(form) }}
-    <div class="mb-3">
-        {{ form_label(form.numeroSlot, 'Numéro Slot') }}
-        {{ form_widget(form.numeroSlot, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.numeroSlot) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.typeCarte, 'Type de carte') }}
-        {{ form_widget(form.typeCarte, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.typeCarte) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.nombrePortsTotal, 'Nombre de ports total') }}
-        {{ form_widget(form.nombrePortsTotal, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.nombrePortsTotal) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.shelf, 'Shelf') }}
-        {{ form_widget(form.shelf, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.shelf) }}
-    </div>
-
-    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+    <section class="om-card">
+        <div class="om-card__body">
+            {{ form_errors(form) }}
+            {{ form_row(form.shelf, {'label': 'Shelf'}) }}
+            <div class="row gx-3">
+                <div class="col-md-4">{{ form_row(form.numeroSlot, {'label': 'Numéro de slot', 'attr': {'min': 0}}) }}</div>
+                <div class="col-md-4">{{ form_row(form.typeCarte, {'label': 'Type de carte', 'attr': {'placeholder': 'Ex. VDSL2'}}) }}</div>
+                <div class="col-md-4">{{ form_row(form.nombrePortsTotal, {'label': 'Nombre de ports', 'help': 'Entre 1 et 128', 'attr': {'min': 1, 'max': 128}}) }}</div>
+            </div>
+        </div>
+        <div class="om-card__footer">
+            <a href="{{ path('app_slot_card_index') }}" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>{{ button_label|default('Enregistrer') }}</button>
+        </div>
+    </section>
 {{ form_end(form) }}

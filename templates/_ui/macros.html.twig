@@ -162,6 +162,28 @@
     </ol>
 {%- endmacro %}
 
+{# Répartition par état : barre empilée + légende. compteurs : {etat: nombre} ; etats : ordre d'affichage #}
+{% macro repartition(type, compteurs, etats) -%}
+    {% set total = 0 %}
+    {% for etat in etats %}{% set total = total + (compteurs[etat] ?? 0) %}{% endfor %}
+    <div class="om-stack mb-3" role="img" aria-label="Répartition par état sur {{ total }} élément(s)">
+        {% for etat in etats %}
+            {% set n = compteurs[etat] ?? 0 %}
+            {% if n > 0 %}
+                <span class="om-stack__seg om-stack__seg--{{ etat|ton(type) }}" style="width: {{ (n / total * 100)|round(2) }}%"></span>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="om-legend">
+        {% for etat in etats %}
+            <span class="om-legend__item">
+                <span class="om-legend__swatch om-legend__swatch--{{ etat|ton(type) }}"></span>
+                {{ etat|libelle(type) }} <strong class="text-body om-num">{{ compteurs[etat] ?? 0 }}</strong>
+            </span>
+        {% endfor %}
+    </div>
+{%- endmacro %}
+
 {# État vide illustré #}
 {% macro empty_state(titre, texte = null, icone = 'inbox', action_url = null, action_libelle = null) -%}
     <div class="om-empty">

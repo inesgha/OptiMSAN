@@ -1,12 +1,19 @@
+{# Sélecteur de position sur carte.
+   Variables : mapId, latFieldId, lngFieldId (id des champs à remplir), defaultLat, defaultLng, label (facultatifs) #}
 <div class="mb-3">
-    <label class="form-label">Position sur la carte (cliquez pour placer le point)</label>
-    <div id="{{ mapId }}" style="height: 400px; border-radius: 8px;"></div>
+    <span class="form-label d-block" id="{{ mapId }}-label">{{ label|default('Position sur la carte') }}</span>
+    <div id="{{ mapId }}" class="om-map om-map--picker" aria-labelledby="{{ mapId }}-label" aria-describedby="{{ mapId }}-aide"></div>
+    <div class="form-text d-flex flex-wrap justify-content-between gap-2" id="{{ mapId }}-aide">
+        <span><i class="bi bi-cursor me-1" aria-hidden="true"></i>Cliquez sur la carte ou faites glisser le repère pour placer le point.</span>
+        <span class="om-mono" id="{{ mapId }}-coords" aria-live="polite"></span>
+    </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const latInput = document.getElementById('{{ latFieldId }}');
     const lngInput = document.getElementById('{{ lngFieldId }}');
+    const coords = document.getElementById('{{ mapId }}-coords');
 
     const initialLat = parseFloat(latInput.value) || {{ defaultLat|default(36.8065) }};
     const initialLng = parseFloat(lngInput.value) || {{ defaultLng|default(10.1815) }};
@@ -17,14 +24,28 @@ document.addEventListener('DOMContentLoaded', function () {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    let marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
+    const icone = L.divIcon({
+        className: 'om-pin-wrap',
+        html: '<span class="om-pin om-pin--moi"><i class="bi bi-geo-alt-fill"></i></span>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+    });
+
+    let marker = L.marker([initialLat, initialLng], { draggable: true, icon: icone }).addTo(map);
+
+    function afficher() {
+        coords.textContent = latInput.value && lngInput.value
+            ? parseFloat(latInput.value).toFixed(5) + ', ' + parseFloat(lngInput.value).toFixed(5)
+            : 'Aucun point choisi';
+    }
 
     function updateFields(lat, lng) {
         latInput.value = lat.toFixed(6);
         lngInput.value = lng.toFixed(6);
+        afficher();
     }
 
-    marker.on('dragend', function (e) {
+    marker.on('dragend', function () {
         const pos = marker.getLatLng();
         updateFields(pos.lat, pos.lng);
     });
@@ -33,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function () {
         marker.setLatLng(e.latlng);
         updateFields(e.latlng.lat, e.latlng.lng);
     });
+
+    afficher();
 
     if (!latInput.value || !lngInput.value) {
         if (navigator.geolocation) {

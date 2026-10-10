@@ -40,6 +40,22 @@ class DemandeLigneRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    /**
+     * Nombre de demandes par état, ex. ['en_attente' => 3, 'installee' => 1].
+     *
+     * @return array<string, int>
+     */
+    public function compterParEtat(): array
+    {
+        $lignes = $this->createQueryBuilder('d')
+            ->select('d.etatDemande AS etat, COUNT(d.id) AS total')
+            ->groupBy('d.etatDemande')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map('intval', array_column($lignes, 'total', 'etat'));
+    }
+
     public function findEnAttentePourCarte(): array
 {
     return $this->createQueryBuilder('d')

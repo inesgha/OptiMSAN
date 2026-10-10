@@ -1,0 +1,74 @@
+{#
+    Squelette commun des espaces connectés : barre latérale + barre du haut + contenu.
+    Ne pas étendre directement : utiliser layout/admin, layout/technicien ou layout/client,
+    qui définissent les blocs role, espace, accueil_url et sidebar_nav.
+    Les pages remplissent le bloc « content ».
+#}
+{% extends 'base.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
+
+{% block body_class %}om-app{% endblock %}
+
+{% block body %}
+<div class="om-shell">
+    {# Menu fixe sur grand écran, tiroir repliable sous 992 px #}
+    <aside class="om-sidebar offcanvas-lg offcanvas-start" id="om-sidebar" tabindex="-1" aria-label="Menu principal">
+        <div class="om-sidebar__inner">
+            <div class="om-sidebar__head">
+                <a class="om-brand" href="{{ block('accueil_url') }}">
+                    {{ include('_ui/_logo.html.twig', {sous_titre: block('espace')}) }}
+                </a>
+                <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
+                        data-bs-target="#om-sidebar" aria-label="Fermer le menu"></button>
+            </div>
+
+            <nav class="om-nav" aria-label="Navigation principale">
+                {% block sidebar_nav %}{% endblock %}
+            </nav>
+
+            <div class="om-sidebar__footer">
+                <div class="om-partner">
+                    <span class="om-logo-chip">
+                        <img src="{{ asset('image/logo-tunisie-telecom2.webp') }}" alt="Tunisie Télécom">
+                    </span>
+                    <span>Réseau d'accès<br><strong>MSAN</strong></span>
+                </div>
+                OptiMSAN · gestion réseau fixe &amp; support
+            </div>
+        </div>
+    </aside>
+
+    <div class="om-main">
+        <header class="om-topbar">
+            <button type="button" class="om-icon-btn d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#om-sidebar"
+                    aria-controls="om-sidebar" aria-label="Ouvrir le menu">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
+
+            <div class="om-topbar__context">
+                <span class="om-topbar__space d-none d-sm-inline">{{ block('espace') }}</span>
+                <span class="om-role om-role--{{ block('role_cle') }}">{{ block('role') }}</span>
+            </div>
+
+            {% if app.user %}
+                <div class="om-user">
+                    <div class="om-user__identity">
+                        {{ ui.avatar(app.user) }}
+                        <span class="om-user__text">
+                            <span class="om-user__name">{{ app.user.prenom }} {{ app.user.nom }}</span>
+                            <span class="om-user__role">{{ app.user.email }}</span>
+                        </span>
+                    </div>
+                    <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm">
+                        <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span class="om-logout-label">Déconnexion</span>
+                    </a>
+                </div>
+            {% endif %}
+        </header>
+
+        <main id="contenu" class="om-content" tabindex="-1">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

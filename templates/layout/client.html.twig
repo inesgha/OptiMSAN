@@ -1,0 +1,19 @@
+{% extends 'layout/app.html.twig' %}
+
+{% block role %}Client{% endblock %}
+{% block role_cle %}client{% endblock %}
+{% block espace %}Espace client{% endblock %}
+{% block accueil_url %}{{ path('client_dashboard') }}{% endblock %}
+
+{% block sidebar_nav %}
+    {% import '_ui/macros.html.twig' as ui %}
+
+    {{ ui.nav_section('Mon espace') }}
+    {{ ui.nav_link('client_dashboard', 'Accueil', 'house') }}
+    {{ ui.nav_link('client_reclamations', 'Mes réclamations', 'ticket-detailed') }}
+    {{ ui.nav_link('client_demandes_ligne', 'Mes demandes de ligne', 'telephone') }}
+
+    {{ ui.nav_section('Nouvelle démarche') }}
+    {{ ui.nav_link('client_reclamation_new', 'Signaler une panne', 'exclamation-triangle') }}
+    {{ ui.nav_link('client_demande_ligne_new', 'Demander une ligne', 'plus-circle') }}
+{% endblock %}

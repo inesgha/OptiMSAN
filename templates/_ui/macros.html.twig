@@ -1,0 +1,251 @@
+{#
+    Composants d'interface réutilisables.
+    Utilisation : {% import '_ui/macros.html.twig' as ui %} puis {{ ui.badge('ticket', reclamation.etatTicket) }}
+
+    Les libellés et couleurs viennent des filtres |libelle(type) et |ton(type) (src/Twig/AppExtension.php).
+    Types : ticket, demande, priorite, port, qualite, panne, offre.
+#}
+
+{# Badge d'état coloré : pastille + libellé lisible #}
+{% macro badge(type, valeur) -%}
+    <span class="om-badge om-badge--{{ valeur|ton(type) }}">{{ valeur|libelle(type) }}</span>
+{%- endmacro %}
+
+{# Disponibilité d'un technicien #}
+{% macro disponibilite(disponible) -%}
+    {% if disponible %}
+        <span class="om-badge om-badge--success">Disponible</span>
+    {% else %}
+        <span class="om-badge om-badge--neutral">Indisponible</span>
+    {% endif %}
+{%- endmacro %}
+
+{# Initiales d'un utilisateur dans une pastille #}
+{% macro avatar(utilisateur, taille = '') -%}
+    {% set initiales = ((utilisateur.prenom|default('?'))|first ~ (utilisateur.nom|default(''))|first)|upper %}
+    <span class="om-avatar{{ taille ? ' om-avatar--' ~ taille }}" aria-hidden="true">{{ initiales }}</span>
+{%- endmacro %}
+
+{# Personne : initiales + nom + ligne secondaire (e-mail, matricule…) #}
+{% macro personne(utilisateur, secondaire = null) -%}
+    {% if utilisateur %}
+        <span class="om-person">
+            {{ _self.avatar(utilisateur, 'sm') }}
+            <span>
+                <span class="om-cell-main">{{ utilisateur.prenom }} {{ utilisateur.nom }}</span>
+                {% if secondaire %}<span class="om-cell-sub">{{ secondaire }}</span>{% endif %}
+            </span>
+        </span>
+    {% else %}
+        <span class="om-muted">—</span>
+    {% endif %}
+{%- endmacro %}
+
+{# En-tête de page. options : eyebrow, icon, subtitle, back_url, back_label, actions (HTML) #}
+{% macro page_header(titre, options = {}) -%}
+    <div class="om-page-header">
+        <div>
+            {% if options.back_url is defined %}
+                <a class="om-back" href="{{ options.back_url }}">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>{{ options.back_label ?? 'Retour' }}
+                </a>
+            {% endif %}
+            {% if options.eyebrow is defined %}
+                <div class="om-eyebrow">
+                    {% if options.icon is defined %}<i class="bi bi-{{ options.icon }}" aria-hidden="true"></i>{% endif %}
+                    {{ options.eyebrow }}
+                </div>
+            {% endif %}
+            <h1 class="om-page-title">{{ titre }}</h1>
+            {% if options.subtitle is defined %}<p class="om-page-subtitle">{{ options.subtitle }}</p>{% endif %}
+        </div>
+        {% if options.actions is defined %}
+            <div class="om-page-actions">{{ options.actions }}</div>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{# Indicateur clé. options : hint, url, suffix #}
+{% macro kpi(libelle, valeur, icone, ton, options = {}) -%}
+    {% set balise = options.url is defined ? 'a' : 'div' %}
+    <{{ balise }} class="om-kpi"{% if options.url is defined %} href="{{ options.url }}"{% endif %}>
+        <div class="om-kpi__top">
+            <span class="om-kpi__label">{{ libelle }}</span>
+            <span class="om-icon-tile om-icon-tile--{{ ton }}"><i class="bi bi-{{ icone }}" aria-hidden="true"></i></span>
+        </div>
+        <div class="om-kpi__value">{{ valeur }}{% if options.suffix is defined %}<small>{{ options.suffix }}</small>{% endif %}</div>
+        {% if options.hint is defined %}<div class="om-kpi__hint">{{ options.hint }}</div>{% endif %}
+    </{{ balise }}>
+{%- endmacro %}
+
+{# Niveau de saturation : ok (< 70 %), warn (< 90 %), crit (au-delà) #}
+{% macro niveau(taux) -%}
+    {{- taux >= 90 ? 'crit' : (taux >= 70 ? 'warn' : 'ok') -}}
+{%- endmacro %}
+
+{# Barre de saturation colorée #}
+{% macro meter(taux, libelle = 'Taux de saturation') -%}
+    {% set taux = taux|default(0) %}
+    <div class="om-meter om-meter--{{ _self.niveau(taux) }}" role="progressbar"
+         aria-label="{{ libelle }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ taux }}">
+        <div class="om-meter__track"><div class="om-meter__fill" style="width: {{ min(taux, 100) }}%"></div></div>
+        <span class="om-meter__value">{{ taux|number_format(1, ',', ' ') }} %</span>
+    </div>
+{%- endmacro %}
+
+{# Jauge circulaire de saturation #}
+{% macro gauge(taux, libelle = 'occupation', taille = '') -%}
+    {% set couleurs = {'ok': 'var(--om-meter-ok)', 'warn': 'var(--om-meter-warn)', 'crit': 'var(--om-meter-crit)'} %}
+    <div class="om-gauge{{ taille ? ' om-gauge--' ~ taille }}" role="img"
+         aria-label="{{ libelle|capitalize }} : {{ taux|number_format(1, ',', ' ') }} %"
+         style="--value: {{ min(taux, 100) }}; --color: {{ couleurs[_self.niveau(taux)|trim] }}">
+        <div class="om-gauge__inner">
+            <span class="om-gauge__value">{{ taux|number_format(taille == 'sm' ? 0 : 1, ',', ' ') }}<small>%</small></span>
+            {% if taille != 'sm' %}<span class="om-gauge__label">{{ libelle }}</span>{% endif %}
+        </div>
+    </div>
+{%- endmacro %}
+
+{# Frise du cycle de vie d'un ticket : ouvert → en cours → résolu → fermé #}
+{% macro frise_ticket(reclamation) -%}
+    {% set etapes = ['ouvert', 'en_cours', 'resolu', 'ferme'] %}
+    {% set icones = {'ouvert': 'envelope-open', 'en_cours': 'tools', 'resolu': 'check2-circle', 'ferme': 'lock'} %}
+    {% set dates = {
+        'ouvert': reclamation.dateCreation ? reclamation.dateCreation|date('d/m/Y') : null,
+        'resolu': reclamation.dateResolution ? reclamation.dateResolution|date('d/m/Y') : null,
+    } %}
+    {% set actuel = 0 %}
+    {% for etape in etapes %}{% if etape == reclamation.etatTicket %}{% set actuel = loop.index0 %}{% endif %}{% endfor %}
+    {% set termine = reclamation.etatTicket == 'ferme' %}
+    <ol class="om-steps" aria-label="Cycle de vie du ticket">
+        {% for etape in etapes %}
+            {% set statut = loop.index0 < actuel or (termine and loop.last) ? 'done' : (loop.index0 == actuel ? 'current' : 'upcoming') %}
+            <li class="om-step om-step--{{ statut }}"{% if loop.index0 == actuel %} aria-current="step"{% endif %}>
+                <span class="om-step__dot">
+                    <i class="bi bi-{{ statut == 'done' ? 'check-lg' : icones[etape] }}" aria-hidden="true"></i>
+                </span>
+                <span class="om-step__label">{{ etape|libelle('ticket') }}</span>
+                <span class="visually-hidden">{{ statut == 'done' ? '(étape franchie)' : (statut == 'current' ? '(étape actuelle)' : '(à venir)') }}</span>
+                {% if dates[etape] is defined and dates[etape] and statut != 'upcoming' %}
+                    <span class="om-step__meta">{{ dates[etape] }}</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+{%- endmacro %}
+
+{# Frise d'une demande de ligne : en attente → validée → en cours → installée (ou refusée) #}
+{% macro frise_demande(demande) -%}
+    {% set refusee = demande.etatDemande == 'refusee' %}
+    {% set etapes = refusee ? ['en_attente', 'refusee'] : ['en_attente', 'validee', 'en_cours', 'installee'] %}
+    {% set icones = {'en_attente': 'hourglass-split', 'validee': 'clipboard-check', 'en_cours': 'tools', 'installee': 'telephone', 'refusee': 'x-lg'} %}
+    {% set actuel = 0 %}
+    {% for etape in etapes %}{% if etape == demande.etatDemande %}{% set actuel = loop.index0 %}{% endif %}{% endfor %}
+    {% set termine = demande.etatDemande == 'installee' %}
+    <ol class="om-steps" aria-label="Avancement de la demande">
+        {% for etape in etapes %}
+            {% if refusee and loop.last %}
+                {% set statut = 'refused' %}
+            {% else %}
+                {% set statut = loop.index0 < actuel or (termine and loop.last) ? 'done' : (loop.index0 == actuel ? 'current' : 'upcoming') %}
+            {% endif %}
+            <li class="om-step om-step--{{ statut }}"{% if loop.index0 == actuel %} aria-current="step"{% endif %}>
+                <span class="om-step__dot">
+                    <i class="bi bi-{{ statut == 'done' ? 'check-lg' : icones[etape] }}" aria-hidden="true"></i>
+                </span>
+                <span class="om-step__label">{{ etape|libelle('demande') }}</span>
+                {% if loop.first and demande.dateDemande %}
+                    <span class="om-step__meta">{{ demande.dateDemande|date('d/m/Y') }}</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+{%- endmacro %}
+
+{# État vide illustré #}
+{% macro empty_state(titre, texte = null, icone = 'inbox', action_url = null, action_libelle = null) -%}
+    <div class="om-empty">
+        <div class="om-empty__art" aria-hidden="true">
+            <svg viewBox="0 0 132 100" fill="none">
+                <rect x="10" y="14" width="100" height="70" rx="12" fill="#F1F5F9" stroke="#CBD5E1" stroke-dasharray="5 5"/>
+                <path d="M38 52 70 36M38 52 70 68" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="36" cy="52" r="8" fill="#fff" stroke="currentColor" stroke-width="2.5"/>
+                <circle cx="72" cy="35" r="7" fill="#fff" stroke="#94A3B8" stroke-width="2"/>
+                <circle cx="72" cy="69" r="7" fill="#fff" stroke="#94A3B8" stroke-width="2"/>
+                <circle cx="36" cy="52" r="3" fill="currentColor"/>
+            </svg>
+            <span class="om-empty__icon"><i class="bi bi-{{ icone }}"></i></span>
+        </div>
+        <p class="om-empty__title">{{ titre }}</p>
+        {% if texte %}<p class="om-empty__text">{{ texte }}</p>{% endif %}
+        {% if action_url %}
+            <a href="{{ action_url }}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ action_libelle }}</a>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{# Barre de recherche / filtre d'un tableau (à placer dans un élément data-controller="table-filter").
+   filtres : {valeur: libellé} pour la liste déroulante (facultatif) #}
+{% macro toolbar(placeholder = 'Rechercher…', filtres = {}, libelle_filtre = 'Filtrer par état') -%}
+    <div class="om-toolbar">
+        <label class="om-search mb-0">
+            <span class="visually-hidden">Rechercher dans le tableau</span>
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" class="form-control" placeholder="{{ placeholder }}" autocomplete="off"
+                   data-table-filter-target="query" data-action="input->table-filter#filter">
+        </label>
+        {% if filtres is not empty %}
+            <select class="form-select" aria-label="{{ libelle_filtre }}"
+                    data-table-filter-target="etat" data-action="change->table-filter#filter">
+                <option value="">Tous les états</option>
+                {% for valeur, libelle in filtres %}
+                    <option value="{{ valeur }}">{{ libelle }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+        <span class="om-toolbar__count" data-table-filter-target="count" aria-live="polite"></span>
+    </div>
+{%- endmacro %}
+
+{# Ligne affichée quand le filtre ne trouve rien #}
+{% macro aucun_resultat(colspan) -%}
+    <tr class="om-no-result" data-table-filter-target="empty" hidden>
+        <td colspan="{{ colspan }}">
+            <i class="bi bi-search me-1" aria-hidden="true"></i>
+            Aucun résultat ne correspond à votre recherche.
+            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" data-action="table-filter#reset">Réinitialiser</button>
+        </td>
+    </tr>
+{%- endmacro %}
+
+{# Menu latéral #}
+{% macro nav_section(libelle) -%}
+    <p class="om-nav__section">{{ libelle }}</p>
+{%- endmacro %}
+
+{% macro nav_link(route, libelle, icone, prefixes = []) -%}
+    {% set courante = app.request.attributes.get('_route') ?? '' %}
+    {% set actif = courante == route or prefixes|filter(p => courante starts with p)|length > 0 %}
+    <a href="{{ path(route) }}" class="om-nav__link{{ actif ? ' active' }}"{% if actif %} aria-current="page"{% endif %}>
+        <i class="bi bi-{{ icone }}" aria-hidden="true"></i><span>{{ libelle }}</span>
+    </a>
+{%- endmacro %}
+
+{# Fil de la hiérarchie réseau en tête des pages d'inventaire #}
+{% macro hierarchie(actif) -%}
+    {% set niveaux = [
+        {cle: 'zone', route: 'app_zone_index', libelle: 'Zones', icone: 'map'},
+        {cle: 'site', route: 'app_site_m_s_a_n_index', libelle: 'Sites MSAN', icone: 'building'},
+        {cle: 'shelf', route: 'app_shelf_index', libelle: 'Shelves', icone: 'hdd-rack'},
+        {cle: 'carte', route: 'app_slot_card_index', libelle: 'Cartes', icone: 'cpu'},
+        {cle: 'port', route: 'app_port_m_s_a_n_index', libelle: 'Ports', icone: 'ethernet'},
+    ] %}
+    <nav class="om-hierarchy" aria-label="Hiérarchie de l'inventaire réseau">
+        {% for niveau in niveaux %}
+            <a class="om-hierarchy__item{{ niveau.cle == actif ? ' active' }}" href="{{ path(niveau.route) }}"{% if niveau.cle == actif %} aria-current="page"{% endif %}>
+                <i class="bi bi-{{ niveau.icone }}" aria-hidden="true"></i>{{ niveau.libelle }}
+            </a>
+            {% if not loop.last %}<i class="bi bi-chevron-right om-hierarchy__sep" aria-hidden="true"></i>{% endif %}
+        {% endfor %}
+    </nav>
+{%- endmacro %}

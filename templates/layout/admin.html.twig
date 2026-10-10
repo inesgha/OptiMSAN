@@ -1,0 +1,30 @@
+{% extends 'layout/app.html.twig' %}
+
+{% block role %}Administrateur{% endblock %}
+{% block role_cle %}admin{% endblock %}
+{% block espace %}Console d'administration{% endblock %}
+{% block accueil_url %}{{ path('admin_dashboard') }}{% endblock %}
+
+{% block sidebar_nav %}
+    {% import '_ui/macros.html.twig' as ui %}
+
+    {{ ui.nav_section('Pilotage') }}
+    {{ ui.nav_link('admin_dashboard', 'Tableau de bord', 'grid-1x2') }}
+    {{ ui.nav_link('admin_saturation', 'Saturation', 'speedometer2') }}
+    {{ ui.nav_link('admin_carte', 'Carte réseau', 'geo-alt') }}
+
+    {{ ui.nav_section('Exploitation') }}
+    {{ ui.nav_link('admin_reclamations', 'Tickets', 'ticket-detailed', ['admin_reclamation']) }}
+    {{ ui.nav_link('admin_demandes_ligne', 'Demandes de ligne', 'telephone-plus', ['admin_demande']) }}
+
+    {{ ui.nav_section('Inventaire réseau') }}
+    {{ ui.nav_link('app_zone_index', 'Zones', 'map', ['app_zone_']) }}
+    {{ ui.nav_link('app_site_m_s_a_n_index', 'Sites MSAN', 'building', ['app_site_m_s_a_n_']) }}
+    {{ ui.nav_link('app_shelf_index', 'Shelves', 'hdd-rack', ['app_shelf_']) }}
+    {{ ui.nav_link('app_slot_card_index', 'Cartes', 'cpu', ['app_slot_card_']) }}
+    {{ ui.nav_link('app_port_m_s_a_n_index', 'Ports', 'ethernet', ['app_port_m_s_a_n_']) }}
+    {{ ui.nav_link('admin_import_ports', 'Import / Export Excel', 'file-earmark-spreadsheet') }}
+
+    {{ ui.nav_section('Administration') }}
+    {{ ui.nav_link('admin_equipe', 'Équipe', 'people', ['admin_equipe', 'admin_create_']) }}
+{% endblock %}

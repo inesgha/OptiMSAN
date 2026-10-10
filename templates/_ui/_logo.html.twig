@@ -1,0 +1,11 @@
+{# Logo OptiMSAN : barres de signal (variables : sous_titre, facultatif) #}
+<svg class="om-brand__mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+    <rect width="40" height="40" rx="10" fill="#12213A" stroke="rgba(255,255,255,.08)"/>
+    <rect x="9" y="22" width="5" height="9" rx="1.5" fill="#2DD4BF" opacity=".5"/>
+    <rect x="17.5" y="15.5" width="5" height="15.5" rx="1.5" fill="#2DD4BF" opacity=".78"/>
+    <rect x="26" y="9" width="5" height="22" rx="1.5" fill="#2DD4BF"/>
+</svg>
+<span>
+    <span class="om-brand__name">OptiMSAN</span>
+    {% if sous_titre|default %}<span class="om-brand__sub">{{ sous_titre }}</span>{% endif %}
+</span>

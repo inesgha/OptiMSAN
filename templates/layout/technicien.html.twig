@@ -1,0 +1,20 @@
+{% extends 'layout/app.html.twig' %}
+
+{% block role %}Technicien{% endblock %}
+{% block role_cle %}technicien{% endblock %}
+{% block espace %}Espace technicien{% endblock %}
+{% block accueil_url %}{{ path('technicien_dashboard') }}{% endblock %}
+
+{% block sidebar_nav %}
+    {% import '_ui/macros.html.twig' as ui %}
+
+    {{ ui.nav_section('Mon activité') }}
+    {{ ui.nav_link('technicien_dashboard', 'Accueil', 'house') }}
+    {{ ui.nav_link('technicien_mes_tickets', 'Mes tickets', 'ticket-detailed', ['technicien_ticket_']) }}
+    {{ ui.nav_link('technicien_pannes_proximite', 'Pannes à proximité', 'broadcast') }}
+
+    {{ ui.nav_section('Terrain') }}
+    {{ ui.nav_link('technicien_qualifications', 'Qualification de ligne', 'activity', ['technicien_qualification']) }}
+    {{ ui.nav_link('technicien_carte', 'Carte des sites', 'geo-alt') }}
+    {{ ui.nav_link('technicien_position', 'Ma position GPS', 'crosshair') }}
+{% endblock %}

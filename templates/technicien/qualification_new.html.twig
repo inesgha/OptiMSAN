@@ -1,38 +1,76 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/technicien.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Qualifier une ligne{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-warning px-3">
-    <a class="navbar-brand text-dark" href="{{ path('technicien_dashboard') }}">← OptiMSAN Technicien</a>
-</nav>
+{% block content %}
+    {% set positionConnue = app.user.latitudeActuelle is not null and app.user.longitudeActuelle is not null %}
+    {{ ui.page_header('Qualifier une ligne xDSL', {
+        back_url: path('technicien_qualifications'),
+        back_label: 'Qualification de ligne',
+        subtitle: 'Saisissez les mesures relevées sur le port. La distance et le débit sont calculés à l\'enregistrement.',
+    }) }}
 
-<div class="container mt-4" style="max-width: 700px;">
-    <h1 class="mb-4">Qualifier une ligne xDSL</h1>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            {{ form_start(form) }}
+                <section class="om-card">
+                    <div class="om-card__body">
+                        {{ form_errors(form) }}
 
-    {% for message in app.flashes('warning') %}
-        <div class="alert alert-warning">{{ message }}</div>
-    {% endfor %}
+                        <h2 class="om-section-title">Ligne testée</h2>
+                        <div class="row gx-3">
+                            <div class="col-md-7">{{ form_row(form.portMSAN) }}</div>
+                            <div class="col-md-5">{{ form_row(form.standard) }}</div>
+                        </div>
 
-    <div class="alert alert-info">
-        ℹ️ La distance et le débit seront calculés automatiquement à l'enregistrement, en fonction de votre position et du standard sélectionné.
+                        <h2 class="om-section-title mt-3">Marge SNR</h2>
+                        <div class="row gx-3">
+                            <div class="col-md-6">{{ form_row(form.snrMarginDown, {'help': 'Entre -10 et 60 dB'}) }}</div>
+                            <div class="col-md-6">{{ form_row(form.snrMarginUp, {'help': 'Entre -10 et 60 dB'}) }}</div>
+                        </div>
+
+                        <h2 class="om-section-title mt-3">Atténuation</h2>
+                        <div class="row gx-3">
+                            <div class="col-md-6">{{ form_row(form.attenuationDown, {'help': 'Entre 0 et 100 dB'}) }}</div>
+                            <div class="col-md-6">{{ form_row(form.attenuationUp, {'help': 'Entre 0 et 100 dB'}) }}</div>
+                        </div>
+
+                        <h2 class="om-section-title mt-3">Appréciation</h2>
+                        {{ form_row(form.qualiteGlobale) }}
+                    </div>
+                    <div class="om-card__footer">
+                        <a href="{{ path('technicien_qualifications') }}" class="btn btn-outline-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Enregistrer le test</button>
+                    </div>
+                </section>
+            {{ form_end(form) }}
+        </div>
+
+        <div class="col-lg-4">
+            <section class="om-card" aria-labelledby="titre-calcul">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-calcul"><i class="bi bi-calculator" aria-hidden="true"></i>Calcul automatique</h2>
+                </div>
+                <ul class="om-list">
+                    <li class="om-list__item">
+                        <span class="om-icon-tile om-icon-tile--accent"><i class="bi bi-rulers" aria-hidden="true"></i></span>
+                        <span class="om-small"><strong class="d-block">Distance</strong>Entre votre position GPS et le site MSAN du port testé.</span>
+                    </li>
+                    <li class="om-list__item">
+                        <span class="om-icon-tile om-icon-tile--info"><i class="bi bi-speedometer" aria-hidden="true"></i></span>
+                        <span class="om-small"><strong class="d-block">Débit estimé</strong>Selon le standard choisi et la distance (affaiblissement de la ligne).</span>
+                    </li>
+                </ul>
+                <div class="om-card__footer om-card__footer--between">
+                    {% if positionConnue %}
+                        <span class="om-small"><i class="bi bi-geo-alt-fill text-success me-1" aria-hidden="true"></i>Position : <span class="om-mono">{{ app.user.latitudeActuelle|number_format(4, '.') }}, {{ app.user.longitudeActuelle|number_format(4, '.') }}</span></span>
+                    {% else %}
+                        <span class="om-small text-danger"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>Position GPS manquante</span>
+                    {% endif %}
+                    <a href="{{ path('technicien_position') }}" class="btn btn-ghost btn-sm">Modifier</a>
+                </div>
+            </section>
+        </div>
     </div>
-
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="mb-3">{{ form_label(form.portMSAN) }}{{ form_widget(form.portMSAN, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.portMSAN) }}</div>
-        <div class="mb-3">{{ form_label(form.standard) }}{{ form_widget(form.standard, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.standard) }}</div>
-        <div class="row">
-            <div class="col-md-6 mb-3">{{ form_label(form.snrMarginDown) }}{{ form_widget(form.snrMarginDown, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.snrMarginDown) }}</div>
-            <div class="col-md-6 mb-3">{{ form_label(form.snrMarginUp) }}{{ form_widget(form.snrMarginUp, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.snrMarginUp) }}</div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">{{ form_label(form.attenuationDown) }}{{ form_widget(form.attenuationDown, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.attenuationDown) }}</div>
-            <div class="col-md-6 mb-3">{{ form_label(form.attenuationUp) }}{{ form_widget(form.attenuationUp, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.attenuationUp) }}</div>
-        </div>
-        <div class="mb-3">{{ form_label(form.qualiteGlobale) }}{{ form_widget(form.qualiteGlobale, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.qualiteGlobale) }}</div>
-
-        <button type="submit" class="btn btn-primary">Enregistrer le test</button>
-    {{ form_end(form) }}
-</div>
 {% endblock %}

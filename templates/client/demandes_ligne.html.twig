@@ -1,47 +1,43 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/client.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Mes demandes de ligne{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-primary px-3">
-    <a class="navbar-brand" href="{{ path('client_dashboard') }}">← OptiMSAN Client</a>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('client_demande_ligne_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>Nouvelle demande</a>
+    {% endset %}
+    {{ ui.page_header('Mes demandes de ligne', {
+        eyebrow: 'Mon espace',
+        icon: 'telephone',
+        subtitle: 'Suivez l\'avancement de vos demandes d\'installation.',
+        actions: actions,
+    }) }}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Mes demandes de ligne</h1>
-        <a href="{{ path('client_demande_ligne_new') }}" class="btn btn-primary">+ Nouvelle demande</a>
-    </div>
-
-    <table class="table table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Référence</th>
-                <th>Offre demandée</th>
-                <th>Adresse</th>
-                <th>État</th>
-                <th>Date de la demande</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for demande in demandes %}
-            <tr>
-                <td><code>{{ demande.codeDemande }}</code></td>
-                <td>{{ demande.typeOffre }}</td>
-                <td>{{ demande.adresseInstallation }}</td>
-                <td>
-                    <span class="badge bg-{{ demande.etatDemande == 'en_attente' ? 'warning' : (demande.etatDemande == 'validee' ? 'success' : 'secondary') }}">
-                        {{ demande.etatDemande }}
-                    </span>
-                </td>
-                <td>{{ demande.dateDemande ? demande.dateDemande|date('d/m/Y H:i') : '' }}</td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5" class="text-center text-muted py-4">Aucune demande pour le moment</td>
-            </tr>
+    {% if demandes is empty %}
+        <section class="om-card">
+            {{ ui.empty_state('Aucune demande pour le moment', 'Demandez l\'installation d\'une nouvelle ligne ADSL, VDSL, fibre ou téléphonique.', 'telephone-plus', path('client_demande_ligne_new'), 'Demander une ligne') }}
+        </section>
+    {% else %}
+        {% for demande in demandes|sort((a, b) => b.dateDemande <=> a.dateDemande) %}
+            <article class="om-card mb-3" aria-labelledby="demande-{{ demande.id }}">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="demande-{{ demande.id }}"><code>{{ demande.codeDemande }}</code></h2>
+                        <p class="om-card__subtitle">Déposée le {{ demande.dateDemande ? demande.dateDemande|date('d/m/Y à H:i') }}</p>
+                    </div>
+                    {{ ui.badge('demande', demande.etatDemande) }}
+                </div>
+                <div class="om-card__body">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-lg-5">
+                            <p class="om-cell-main mb-1">{{ demande.typeOffre|libelle('offre') }}</p>
+                            <p class="om-muted om-small mb-0"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ demande.adresseInstallation }}</p>
+                        </div>
+                        <div class="col-lg-7">{{ ui.frise_demande(demande, true) }}</div>
+                    </div>
+                </div>
+            </article>
         {% endfor %}
-        </tbody>
-    </table>
-</div>
+    {% endif %}
 {% endblock %}

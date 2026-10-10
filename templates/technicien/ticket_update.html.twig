@@ -1,40 +1,52 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/technicien.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Ticket {{ reclamation.codeTicket }}{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-warning px-3">
-    <a class="navbar-brand text-dark" href="{{ path('technicien_mes_tickets') }}">← Mes tickets</a>
-</nav>
+{% block content %}
+    {% set sousTitre %}
+        {{ ui.badge('ticket', reclamation.etatTicket) }} {{ ui.badge('priorite', reclamation.priorite) }}
+        <span class="ms-1">{{ reclamation.typePanne|libelle('panne') }}</span>
+    {% endset %}
+    {{ ui.page_header('Ticket ' ~ reclamation.codeTicket, {
+        back_url: path('technicien_mes_tickets'),
+        back_label: 'Mes tickets',
+        subtitle: sousTitre,
+    }) }}
 
-<div class="container mt-4" style="max-width: 700px;">
-    <h1 class="mb-4">Ticket {{ reclamation.codeTicket }}</h1>
+    <section class="om-card mb-4" aria-label="Cycle de vie du ticket">
+        <div class="om-card__body py-4">
+            {{ ui.frise_ticket(reclamation) }}
+        </div>
+    </section>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <p><strong>Client :</strong> {{ reclamation.client ? reclamation.client.prenom ~ ' ' ~ reclamation.client.nom : '—' }}</p>
-            <p><strong>Type de panne :</strong> {{ reclamation.typePanne }}</p>
-            <p><strong>Description du client :</strong> {{ reclamation.description ?: 'Aucune description' }}</p>
-            <p><strong>Priorité :</strong> {{ reclamation.priorite }}</p>
-            <p><strong>Port concerné :</strong> {{ reclamation.portMSAN ? 'Port ' ~ reclamation.portMSAN.numeroPort : 'Non spécifié' }}</p>
-            <p class="mb-0"><strong>Créé le :</strong> {{ reclamation.dateCreation|date('d/m/Y H:i') }}</p>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            {{ include('reclamation/_details.html.twig') }}
+        </div>
+        <div class="col-lg-5">
+            <section class="om-card" aria-labelledby="titre-intervention">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="titre-intervention"><i class="bi bi-tools" aria-hidden="true"></i>Mon intervention</h2>
+                        <p class="om-card__subtitle">La description du client est conservée ; vos notes s'ajoutent à part.</p>
+                    </div>
+                </div>
+                {{ form_start(form) }}
+                    <div class="om-card__body">
+                        {{ form_errors(form) }}
+                        {{ form_row(form.etatTicket) }}
+                        {% include 'reclamation/_transitions.html.twig' %}
+                        <div class="mt-3">
+                            {{ form_row(form.notesIntervention, {'help': '1 000 caractères maximum.'}) }}
+                        </div>
+                    </div>
+                    <div class="om-card__footer">
+                        <a href="{{ path('technicien_mes_tickets') }}" class="btn btn-outline-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Enregistrer</button>
+                    </div>
+                {{ form_end(form) }}
+            </section>
         </div>
     </div>
-
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="mb-3">
-            {{ form_label(form.etatTicket) }}
-            {{ form_widget(form.etatTicket, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.etatTicket) }}
-            {% include 'reclamation/_transitions.html.twig' %}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.notesIntervention) }}
-            {{ form_widget(form.notesIntervention, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.notesIntervention) }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
-    {{ form_end(form) }}
-</div>
 {% endblock %}

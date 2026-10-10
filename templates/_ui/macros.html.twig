@@ -107,7 +107,7 @@
 {%- endmacro %}
 
 {# Frise du cycle de vie d'un ticket : ouvert → en cours → résolu → fermé #}
-{% macro frise_ticket(reclamation) -%}
+{% macro frise_ticket(reclamation, compact = false) -%}
     {% set etapes = ['ouvert', 'en_cours', 'resolu', 'ferme'] %}
     {% set icones = {'ouvert': 'envelope-open', 'en_cours': 'tools', 'resolu': 'check2-circle', 'ferme': 'lock'} %}
     {% set dates = {
@@ -117,7 +117,7 @@
     {% set actuel = 0 %}
     {% for etape in etapes %}{% if etape == reclamation.etatTicket %}{% set actuel = loop.index0 %}{% endif %}{% endfor %}
     {% set termine = reclamation.etatTicket == 'ferme' %}
-    <ol class="om-steps" aria-label="Cycle de vie du ticket">
+    <ol class="om-steps{{ compact ? ' om-steps--compact' }}" aria-label="Cycle de vie du ticket">
         {% for etape in etapes %}
             {% set statut = loop.index0 < actuel or (termine and loop.last) ? 'done' : (loop.index0 == actuel ? 'current' : 'upcoming') %}
             <li class="om-step om-step--{{ statut }}"{% if loop.index0 == actuel %} aria-current="step"{% endif %}>
@@ -135,14 +135,14 @@
 {%- endmacro %}
 
 {# Frise d'une demande de ligne : en attente → validée → en cours → installée (ou refusée) #}
-{% macro frise_demande(demande) -%}
+{% macro frise_demande(demande, compact = false) -%}
     {% set refusee = demande.etatDemande == 'refusee' %}
     {% set etapes = refusee ? ['en_attente', 'refusee'] : ['en_attente', 'validee', 'en_cours', 'installee'] %}
     {% set icones = {'en_attente': 'hourglass-split', 'validee': 'clipboard-check', 'en_cours': 'tools', 'installee': 'telephone', 'refusee': 'x-lg'} %}
     {% set actuel = 0 %}
     {% for etape in etapes %}{% if etape == demande.etatDemande %}{% set actuel = loop.index0 %}{% endif %}{% endfor %}
     {% set termine = demande.etatDemande == 'installee' %}
-    <ol class="om-steps" aria-label="Avancement de la demande">
+    <ol class="om-steps{{ compact ? ' om-steps--compact' }}" aria-label="Avancement de la demande">
         {% for etape in etapes %}
             {% if refusee and loop.last %}
                 {% set statut = 'refused' %}

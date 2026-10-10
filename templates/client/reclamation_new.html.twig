@@ -1,42 +1,56 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/client.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Déposer une réclamation{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-primary px-3">
-    <a class="navbar-brand" href="{{ path('client_dashboard') }}">← OptiMSAN Client</a>
-</nav>
+{% block content %}
+    {{ ui.page_header('Signaler une panne', {
+        back_url: path('client_reclamations'),
+        back_label: 'Mes réclamations',
+        subtitle: 'Décrivez le problème : un ticket sera créé et suivi par nos équipes techniques.',
+    }) }}
 
-<div class="container mt-4" style="max-width: 700px;">
-    <h1 class="mb-4">Déposer une réclamation</h1>
-
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="mb-3">
-            {{ form_label(form.typePanne) }}
-            {{ form_widget(form.typePanne, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.typePanne) }}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            {{ form_start(form) }}
+                <section class="om-card">
+                    <div class="om-card__body">
+                        {{ form_errors(form) }}
+                        <div class="row gx-3">
+                            <div class="col-md-7">{{ form_row(form.typePanne) }}</div>
+                            <div class="col-md-5">{{ form_row(form.priorite) }}</div>
+                        </div>
+                        {{ form_row(form.description, {'help': 'Entre 10 et 255 caractères.'}) }}
+                        {{ form_row(form.portMSAN, {'help': 'Facultatif : laissez « Non spécifié » si vous ne le connaissez pas.'}) }}
+                    </div>
+                    <div class="om-card__footer">
+                        <a href="{{ path('client_reclamations') }}" class="btn btn-outline-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-send" aria-hidden="true"></i>Envoyer la réclamation</button>
+                    </div>
+                </section>
+            {{ form_end(form) }}
         </div>
 
-        <div class="mb-3">
-            {{ form_label(form.description) }}
-            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.description) }}
+        <div class="col-lg-4">
+            <section class="om-card" aria-labelledby="titre-ensuite">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-ensuite"><i class="bi bi-signpost-split" aria-hidden="true"></i>Et ensuite ?</h2>
+                </div>
+                <ol class="om-list">
+                    <li class="om-list__item">
+                        <span class="om-icon-tile om-icon-tile--info"><i class="bi bi-envelope-open" aria-hidden="true"></i></span>
+                        <span class="om-small"><strong class="d-block">Ticket ouvert</strong>Vous recevez un code TCK pour le suivre.</span>
+                    </li>
+                    <li class="om-list__item">
+                        <span class="om-icon-tile om-icon-tile--warning"><i class="bi bi-tools" aria-hidden="true"></i></span>
+                        <span class="om-small"><strong class="d-block">Intervention</strong>Un technicien proche est assigné à votre ticket.</span>
+                    </li>
+                    <li class="om-list__item">
+                        <span class="om-icon-tile om-icon-tile--success"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+                        <span class="om-small"><strong class="d-block">Résolution</strong>Vous suivez chaque étape dans « Mes réclamations ».</span>
+                    </li>
+                </ol>
+            </section>
         </div>
-
-        <div class="mb-3">
-            {{ form_label(form.priorite) }}
-            {{ form_widget(form.priorite, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.priorite) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.portMSAN) }}
-            {{ form_widget(form.portMSAN, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.portMSAN) }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Envoyer la réclamation</button>
-    {{ form_end(form) }}
-</div>
+    </div>
 {% endblock %}

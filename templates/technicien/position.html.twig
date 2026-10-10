@@ -1,43 +1,65 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/technicien.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Ma position{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-warning px-3">
-    <a class="navbar-brand text-dark" href="{{ path('technicien_dashboard') }}">← Tableau de bord</a>
-</nav>
+{% block content %}
+    <div class="om-narrow">
+        {{ ui.page_header('Ma position GPS', {
+            eyebrow: 'Terrain',
+            icon: 'crosshair',
+            subtitle: 'Elle sert à afficher les pannes à proximité (15 km) et à calculer la distance lors d\'une qualification de ligne.',
+        }) }}
 
-<div class="container mt-4" style="max-width: 600px;">
-    <h1 class="mb-3">Ma position GPS</h1>
-    <p class="text-muted">Elle sert à afficher les pannes à proximité (15 km) et à calculer la distance lors d'une qualification de ligne.</p>
+        {{ form_start(form) }}
+            <section class="om-card">
+                <div class="om-card__body">
+                    {{ form_errors(form) }}
+                    <div class="row gx-3">
+                        <div class="col-sm-6">{{ form_row(form.latitudeActuelle, {'attr': {'class': 'om-mono', 'inputmode': 'decimal'}}) }}</div>
+                        <div class="col-sm-6">{{ form_row(form.longitudeActuelle, {'attr': {'class': 'om-mono', 'inputmode': 'decimal'}}) }}</div>
+                    </div>
 
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="mb-3">
-            {{ form_label(form.latitudeActuelle) }}
-            {{ form_widget(form.latitudeActuelle, {'attr': {'class': 'form-control', 'id': 'pos_lat'}}) }}{{ form_errors(form.latitudeActuelle) }}
-        </div>
-        <div class="mb-3">
-            {{ form_label(form.longitudeActuelle) }}
-            {{ form_widget(form.longitudeActuelle, {'attr': {'class': 'form-control', 'id': 'pos_lng'}}) }}{{ form_errors(form.longitudeActuelle) }}
-        </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mb-3" id="btn-geoloc">
+                        <i class="bi bi-crosshair" aria-hidden="true"></i>Utiliser ma position actuelle
+                    </button>
+                    <p class="om-small text-danger d-none" id="geoloc-erreur" role="alert"></p>
 
-        <button type="button" class="btn btn-outline-secondary" id="btn-geoloc">📍 Utiliser ma position actuelle</button>
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
-    {{ form_end(form) }}
-</div>
+                    {% include '_map_picker.html.twig' with {
+                        mapId: 'positionMap',
+                        latFieldId: form.latitudeActuelle.vars.id,
+                        lngFieldId: form.longitudeActuelle.vars.id,
+                        label: 'Ou placez-vous sur la carte'
+                    } %}
+                </div>
+                <div class="om-card__footer">
+                    <a href="{{ path('technicien_dashboard') }}" class="btn btn-outline-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Enregistrer</button>
+                </div>
+            </section>
+        {{ form_end(form) }}
+    </div>
 {% endblock %}
 
 {% block javascripts %}
 <script>
     document.getElementById('btn-geoloc').addEventListener('click', function () {
+        const erreur = document.getElementById('geoloc-erreur');
         if (!navigator.geolocation) {
-            alert('La géolocalisation n\'est pas disponible dans ce navigateur.');
+            erreur.textContent = 'La géolocalisation n\'est pas disponible dans ce navigateur.';
+            erreur.classList.remove('d-none');
             return;
         }
         navigator.geolocation.getCurrentPosition(function (pos) {
-            document.querySelector('[name="technicien_position[latitudeActuelle]"]').value = pos.coords.latitude.toFixed(6);
-            document.querySelector('[name="technicien_position[longitudeActuelle]"]').value = pos.coords.longitude.toFixed(6);
+            const lat = document.querySelector('[name="technicien_position[latitudeActuelle]"]');
+            const lng = document.querySelector('[name="technicien_position[longitudeActuelle]"]');
+            lat.value = pos.coords.latitude.toFixed(6);
+            lng.value = pos.coords.longitude.toFixed(6);
+            erreur.classList.add('d-none');
+            lat.dispatchEvent(new Event('change'));
+        }, function () {
+            erreur.textContent = 'Impossible d\'obtenir votre position : autorisez la géolocalisation dans le navigateur.';
+            erreur.classList.remove('d-none');
         });
     });
 </script>

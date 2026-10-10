@@ -1,51 +1,59 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/client.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Mes réclamations{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-primary px-3">
-    <a class="navbar-brand" href="{{ path('client_dashboard') }}">← OptiMSAN Client</a>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('client_reclamation_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>Nouvelle réclamation</a>
+    {% endset %}
+    {{ ui.page_header('Mes réclamations', {
+        eyebrow: 'Mon espace',
+        icon: 'ticket-detailed',
+        subtitle: 'Chaque réclamation suit les étapes : ouvert → en cours → résolu → fermé.',
+        actions: actions,
+    }) }}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Mes réclamations</h1>
-        <a href="{{ path('client_reclamation_new') }}" class="btn btn-primary">+ Nouvelle réclamation</a>
-    </div>
+    {% if reclamations is empty %}
+        <section class="om-card">
+            {{ ui.empty_state('Aucune réclamation pour le moment', 'En cas de panne sur votre ligne, signalez-la : un ticket sera créé et suivi par nos équipes.', 'ticket-detailed', path('client_reclamation_new'), 'Signaler une panne') }}
+        </section>
+    {% else %}
+        <div data-controller="table-filter">
+            <div class="om-card mb-3">
+                {{ ui.toolbar('Rechercher un ticket, un type de panne…', constant('App\\Service\\ReclamationWorkflow::LIBELLES')) }}
+            </div>
 
-    <table class="table table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Ticket</th>
-                <th>Type</th>
-                <th>Priorité</th>
-                <th>État</th>
-                <th>Date création</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for reclamation in reclamations %}
-            <tr>
-                <td><code>{{ reclamation.codeTicket }}</code></td>
-                <td>{{ reclamation.typePanne }}</td>
-                <td>
-                    <span class="badge bg-{{ reclamation.priorite == 'urgente' ? 'danger' : (reclamation.priorite == 'normale' ? 'warning' : 'secondary') }}">
-                        {{ reclamation.priorite }}
-                    </span>
-                </td>
-                <td>
-                    <span class="badge bg-{{ reclamation.etatTicket == 'ouvert' ? 'info' : 'success' }}">
-                        {{ reclamation.etatTicket }}
-                    </span>
-                </td>
-                <td>{{ reclamation.dateCreation ? reclamation.dateCreation|date('d/m/Y H:i') : '' }}</td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5" class="text-center text-muted py-4">Aucune réclamation pour le moment</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            {% for reclamation in reclamations|sort((a, b) => b.dateCreation <=> a.dateCreation) %}
+                <article class="om-card mb-3" data-table-filter-target="row" data-etat="{{ reclamation.etatTicket }}" aria-labelledby="ticket-{{ reclamation.id }}">
+                    <div class="om-card__header">
+                        <div>
+                            <h2 class="om-card__title" id="ticket-{{ reclamation.id }}"><code>{{ reclamation.codeTicket }}</code></h2>
+                            <p class="om-card__subtitle">Déposée le {{ reclamation.dateCreation ? reclamation.dateCreation|date('d/m/Y à H:i') }}</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            {{ ui.badge('priorite', reclamation.priorite) }}
+                            {{ ui.badge('ticket', reclamation.etatTicket) }}
+                        </div>
+                    </div>
+                    <div class="om-card__body">
+                        <div class="row g-4 align-items-center">
+                            <div class="col-lg-5">
+                                <p class="om-cell-main mb-1">{{ reclamation.typePanne|libelle('panne') }}</p>
+                                <p class="om-muted om-small mb-0">{{ reclamation.description ?: 'Aucune description' }}</p>
+                            </div>
+                            <div class="col-lg-7">{{ ui.frise_ticket(reclamation, true) }}</div>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+
+            <div class="om-card" data-table-filter-target="empty" hidden>
+                <p class="om-card__body text-center om-muted mb-0">
+                    <i class="bi bi-search me-1" aria-hidden="true"></i>Aucune réclamation ne correspond à votre recherche.
+                    <button type="button" class="btn btn-link btn-sm p-0 align-baseline" data-action="table-filter#reset">Réinitialiser</button>
+                </p>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}

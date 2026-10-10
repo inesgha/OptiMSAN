@@ -1,56 +1,66 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/technicien.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Pannes à proximité{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-warning px-3">
-    <a class="navbar-brand text-dark" href="{{ path('technicien_dashboard') }}">← OptiMSAN Technicien</a>
-</nav>
+{% block content %}
+    {% set positionConnue = technicien.latitudeActuelle is not null and technicien.longitudeActuelle is not null %}
+    {% set actions %}
+        <a href="{{ path('technicien_position') }}" class="btn btn-outline-secondary"><i class="bi bi-crosshair" aria-hidden="true"></i>Mettre à jour ma position</a>
+    {% endset %}
+    {{ ui.page_header('Pannes à proximité', {
+        eyebrow: 'Mon activité',
+        icon: 'broadcast',
+        subtitle: positionConnue
+            ? 'Tickets ouverts dont le site MSAN est à moins de 15 km de votre position (' ~ technicien.latitudeActuelle|number_format(4, '.') ~ ', ' ~ technicien.longitudeActuelle|number_format(4, '.') ~ '), du plus proche au plus éloigné.'
+            : 'Tickets ouverts dont le site MSAN est à moins de 15 km de votre position.',
+        actions: actions,
+    }) }}
 
-<div class="container mt-4">
-    <h1 class="mb-2">Pannes à proximité</h1>
-    <p class="text-muted mb-4">
-        Basé sur votre position actuelle
-        ({{ technicien.latitudeActuelle }}, {{ technicien.longitudeActuelle }}) — rayon de 15 km.
-    </p>
-
-    {% if not technicien.latitudeActuelle or not technicien.longitudeActuelle %}
-        <div class="alert alert-warning">
-            Votre position GPS n'est pas renseignée. Contactez un administrateur pour la mettre à jour.
-        </div>
+    {% if not positionConnue %}
+        <section class="om-card">
+            {{ ui.empty_state('Position GPS non renseignée', 'Renseignez votre position pour afficher les pannes situées à moins de 15 km.', 'geo-alt') }}
+            <div class="text-center pb-4">
+                <a href="{{ path('technicien_position') }}" class="btn btn-primary"><i class="bi bi-crosshair" aria-hidden="true"></i>Renseigner ma position</a>
+            </div>
+        </section>
+    {% else %}
+        <section class="om-card" data-controller="table-filter" aria-label="Pannes à proximité">
+            {% if pannes is empty %}
+                {{ ui.empty_state('Aucune panne ouverte à proximité', 'Aucun ticket ouvert dans un rayon de 15 km autour de vous.', 'broadcast') }}
+            {% else %}
+                {{ ui.toolbar('Rechercher un ticket, un site…', {'urgente': 'Urgente', 'normale': 'Normale', 'faible': 'Faible'}, 'Filtrer par priorité') }}
+                <div class="table-responsive">
+                    <table class="table om-table table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Ticket</th>
+                                <th scope="col">Type de panne</th>
+                                <th scope="col">Priorité</th>
+                                <th scope="col">Site MSAN</th>
+                                <th scope="col" class="om-col-num">Distance</th>
+                                <th scope="col">Créé le</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for panne in pannes %}
+                                <tr data-table-filter-target="row" data-etat="{{ panne.priorite }}">
+                                    <td>
+                                        <code>{{ panne.code_ticket }}</code>
+                                        {% if panne.description %}<span class="om-cell-sub om-truncate" title="{{ panne.description }}">{{ panne.description }}</span>{% endif %}
+                                    </td>
+                                    <td>{{ panne.type_panne|libelle('panne') }}</td>
+                                    <td>{{ ui.badge('priorite', panne.priorite) }}</td>
+                                    <td><i class="bi bi-building om-muted me-1" aria-hidden="true"></i>{{ panne.nom_site }}</td>
+                                    <td class="om-col-num om-mono text-nowrap"><strong>{{ panne.distance|number_format(1, ',') }} km</strong></td>
+                                    <td class="om-mono text-nowrap">{{ panne.date_creation|date('d/m/Y H:i') }}</td>
+                                </tr>
+                            {% endfor %}
+                            {{ ui.aucun_resultat(6) }}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </section>
     {% endif %}
-
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Ticket</th>
-                <th>Type de panne</th>
-                <th>Priorité</th>
-                <th>Site MSAN</th>
-                <th>Distance</th>
-                <th>Créé le</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for panne in pannes %}
-            <tr>
-                <td><code>{{ panne.code_ticket }}</code></td>
-                <td>{{ panne.type_panne }}</td>
-                <td>
-                    <span class="badge bg-{{ panne.priorite == 'urgente' ? 'danger' : (panne.priorite == 'normale' ? 'warning' : 'secondary') }}">
-                        {{ panne.priorite }}
-                    </span>
-                </td>
-                <td>{{ panne.nom_site }}</td>
-                <td><strong>{{ panne.distance|number_format(1) }} km</strong></td>
-                <td>{{ panne.date_creation|date('d/m/Y H:i') }}</td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="6" class="text-center text-muted py-4">Aucune panne ouverte à proximité</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
 {% endblock %}

@@ -1,53 +1,51 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/technicien.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Mes qualifications de ligne{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-dark bg-warning px-3">
-    <a class="navbar-brand text-dark" href="{{ path('technicien_dashboard') }}">← OptiMSAN Technicien</a>
-</nav>
+{% block content %}
+    {% set actions %}
+        <a href="{{ path('technicien_qualification_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>Nouveau test</a>
+    {% endset %}
+    {{ ui.page_header('Qualification de ligne', {
+        eyebrow: 'Terrain',
+        icon: 'activity',
+        subtitle: 'Historique de vos tests xDSL : mesures relevées et débit estimé selon la distance au site.',
+        actions: actions,
+    }) }}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Mes qualifications de ligne</h1>
-        <a href="{{ path('technicien_qualification_new') }}" class="btn btn-primary">+ Nouveau test</a>
-    </div>
-
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Date</th>
-                <th>Port</th>
-                <th>Standard</th>
-                <th>Débit ↓/↑</th>
-                <th>Distance</th>
-                <th>Qualité</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for qualification in qualifications %}
-            <tr>
-                <td>{{ qualification.dateTest|date('d/m/Y H:i') }}</td>
-                <td>Port {{ qualification.portMSAN.numeroPort }}</td>
-                <td>{{ qualification.standard }}</td>
-                <td>{{ qualification.channelRateDown }} / {{ qualification.channelRateUp }} kbps</td>
-                <td>{{ qualification.distanceKm }} km</td>
-                <td>
-                    <span class="badge bg-{{ qualification.qualiteGlobale == 'excellente' or qualification.qualiteGlobale == 'bonne' ? 'success' : (qualification.qualiteGlobale == 'moyenne' ? 'warning' : 'danger') }}">
-                        {{ qualification.qualiteGlobale }}
-                    </span>
-                </td>
-            </tr>
+    <section class="om-card" data-controller="table-filter" aria-label="Mes tests de ligne">
+        {% if qualifications is empty %}
+            {{ ui.empty_state('Aucun test réalisé pour le moment', 'Qualifiez une ligne pour estimer son débit à partir de vos mesures.', 'activity', path('technicien_qualification_new'), 'Nouveau test') }}
         {% else %}
-            <tr>
-                <td colspan="6" class="text-center text-muted py-4">Aucun test réalisé pour le moment</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            {{ ui.toolbar('Rechercher un port, un standard…', {'excellente': 'Excellente', 'bonne': 'Bonne', 'moyenne': 'Moyenne', 'faible': 'Faible'}, 'Filtrer par qualité') }}
+            <div class="table-responsive">
+                <table class="table om-table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Port</th>
+                            <th scope="col">Standard</th>
+                            <th scope="col" class="om-col-num">Débit estimé ↓ / ↑</th>
+                            <th scope="col" class="om-col-num">Distance</th>
+                            <th scope="col">Qualité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for qualification in qualifications %}
+                            <tr data-table-filter-target="row" data-etat="{{ qualification.qualiteGlobale }}">
+                                <td class="om-mono text-nowrap">{{ qualification.dateTest|date('d/m/Y H:i') }}</td>
+                                <td>Port {{ qualification.portMSAN ? qualification.portMSAN.numeroPort : '—' }}</td>
+                                <td><span class="om-tag">{{ qualification.standard }}</span></td>
+                                <td class="om-col-num om-mono text-nowrap">{{ qualification.channelRateDown }} / {{ qualification.channelRateUp }} <span class="om-muted">kbps</span></td>
+                                <td class="om-col-num om-mono text-nowrap">{{ qualification.distanceKm }} km</td>
+                                <td>{{ ui.badge('qualite', qualification.qualiteGlobale) }}</td>
+                            </tr>
+                        {% endfor %}
+                        {{ ui.aucun_resultat(6) }}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

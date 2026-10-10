@@ -26,9 +26,29 @@ class TechnicienController extends AbstractController
 {
     #[Route('/', name: 'technicien_dashboard')]
     #[IsGranted('ROLE_TECHNICIEN')]
-    public function index(): Response
+    public function index(ReclamationRepository $reclamationRepository, QualificationLigneRepository $qualificationLigneRepository): Response
     {
-        return $this->render('technicien/index.html.twig');
+        /** @var \App\Entity\Technicien $technicien */
+        $technicien = $this->getUser();
+
+        $mesTickets = $reclamationRepository->findByTechnicien($technicien);
+        $actifs = array_values(array_filter(
+            $mesTickets,
+            fn (Reclamation $r) => in_array($r->getEtatTicket(), [Reclamation::ETAT_OUVERT, Reclamation::ETAT_EN_COURS], true)
+        ));
+
+        $pannes = [];
+        if (null !== $technicien->getLatitudeActuelle() && null !== $technicien->getLongitudeActuelle()) {
+            $pannes = $reclamationRepository->findPannesProches($technicien->getLatitudeActuelle(), $technicien->getLongitudeActuelle(), 15);
+        }
+
+        return $this->render('technicien/index.html.twig', [
+            'ticketsActifs' => $actifs,
+            'nbTicketsResolus' => count($mesTickets) - count($actifs),
+            'pannesProches' => array_slice($pannes, 0, 4),
+            'nbPannesProches' => count($pannes),
+            'nbQualifications' => $qualificationLigneRepository->count(['technicien' => $technicien]),
+        ]);
     }
     #[Route('/pannes-proximite', name: 'technicien_pannes_proximite')]
 #[IsGranted('ROLE_TECHNICIEN')]

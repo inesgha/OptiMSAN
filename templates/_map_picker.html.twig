@@ -14,9 +14,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const latInput = document.getElementById('{{ latFieldId }}');
     const lngInput = document.getElementById('{{ lngFieldId }}');
     const coords = document.getElementById('{{ mapId }}-coords');
+    // Les champs numériques en français utilisent la virgule décimale (36,8065)
+    const nombre = (champ) => parseFloat(String(champ.value).replace(',', '.'));
 
-    const initialLat = parseFloat(latInput.value) || {{ defaultLat|default(36.8065) }};
-    const initialLng = parseFloat(lngInput.value) || {{ defaultLng|default(10.1815) }};
+    const initialLat = nombre(latInput) || {{ defaultLat|default(36.8065) }};
+    const initialLng = nombre(lngInput) || {{ defaultLng|default(10.1815) }};
 
     const map = L.map('{{ mapId }}').setView([initialLat, initialLng], 13);
 
@@ -35,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function afficher() {
         coords.textContent = latInput.value && lngInput.value
-            ? parseFloat(latInput.value).toFixed(5) + ', ' + parseFloat(lngInput.value).toFixed(5)
+            ? nombre(latInput).toFixed(5) + ', ' + nombre(lngInput).toFixed(5)
             : 'Aucun point choisi';
     }
 
@@ -53,6 +55,19 @@ document.addEventListener('DOMContentLoaded', function () {
     map.on('click', function (e) {
         marker.setLatLng(e.latlng);
         updateFields(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Saisie manuelle ou bouton « ma position » : le repère suit les champs
+    [latInput, lngInput].forEach(function (champ) {
+        champ.addEventListener('change', function () {
+            const lat = nombre(latInput);
+            const lng = nombre(lngInput);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                marker.setLatLng([lat, lng]);
+                map.setView([lat, lng], Math.max(map.getZoom(), 14));
+            }
+            afficher();
+        });
     });
 
     afficher();

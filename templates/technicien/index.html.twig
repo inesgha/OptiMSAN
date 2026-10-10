@@ -1,84 +1,108 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/technicien.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Espace Technicien{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-warning px-3">
-    <span class="navbar-brand text-dark fw-bold">OptiMSAN — Espace Technicien</span>
-    <div class="d-flex ms-auto">
-        <span class="navbar-text text-dark me-3">
-            {{ app.user.prenom }} {{ app.user.nom }}
-            {% if app.user.matricule is defined %}
-                <small class="text-muted">({{ app.user.matricule }})</small>
-            {% endif %}
-        </span>
-        <a href="{{ path('app_logout') }}" class="btn btn-outline-dark btn-sm">Déconnexion</a>
-    </div>
-</nav>
+{% block content %}
+    {% set positionConnue = app.user.latitudeActuelle is not null and app.user.longitudeActuelle is not null %}
+    {% set actions %}
+        <a href="{{ path('technicien_qualification_new') }}" class="btn btn-primary"><i class="bi bi-activity" aria-hidden="true"></i>Qualifier une ligne</a>
+    {% endset %}
+    {{ ui.page_header('Bonjour ' ~ app.user.prenom, {
+        eyebrow: 'Mon activité',
+        icon: 'house',
+        subtitle: 'Vos interventions du jour et les pannes signalées autour de vous.',
+        actions: actions,
+    }) }}
 
-<div class="d-flex">
-    <!-- Sidebar -->
-    <div class="bg-light border-end vh-100 p-3" style="width: 250px;">
-        <h6 class="text-muted text-uppercase small mb-3">Mon espace</h6>
-        <div class="list-group mb-4">
-            <a href="{{ path('technicien_dashboard') }}" class="list-group-item list-group-item-action active">
-                🏠 Accueil
-            </a>
-            <a href="{{ path('technicien_pannes_proximite') }}" class="list-group-item list-group-item-action">
-                📍 Pannes à proximité
-            </a>
-           <a href="{{ path('technicien_qualifications') }}" class="list-group-item list-group-item-action">
-    🧪 Qualifier une ligne
-</a>
-      <a href="{{ path('technicien_carte') }}" class="list-group-item list-group-item-action">
-    🗺️ Carte des sites MSAN
-</a>
-            <a href="{{ path('technicien_mes_tickets') }}" class="list-group-item list-group-item-action">
-    🎫 Mes tickets
-</a>
+    {% if not positionConnue %}
+        <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2 mb-4" role="alert">
+            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+            <span class="flex-grow-1">Votre position GPS n'est pas renseignée : les pannes à proximité et l'estimation de débit ne peuvent pas être calculées.</span>
+            <a href="{{ path('technicien_position') }}" class="btn btn-sm btn-outline-secondary">Renseigner ma position</a>
         </div>
+    {% endif %}
+
+    <div class="row row-cols-2 row-cols-xl-4 g-3 mb-4">
+        <div class="col">{{ ui.kpi('Tickets à traiter', ticketsActifs|length, 'tools', 'warning', {url: path('technicien_mes_tickets'), hint: 'Ouverts ou en cours'}) }}</div>
+        <div class="col">{{ ui.kpi('Pannes à proximité', positionConnue ? nbPannesProches : '—', 'broadcast', 'danger', {url: path('technicien_pannes_proximite'), hint: 'Dans un rayon de 15 km'}) }}</div>
+        <div class="col">{{ ui.kpi('Tickets traités', nbTicketsResolus, 'check2-circle', 'success', {url: path('technicien_mes_tickets'), hint: 'Résolus ou fermés'}) }}</div>
+        <div class="col">{{ ui.kpi('Tests de ligne', nbQualifications, 'activity', 'accent', {url: path('technicien_qualifications'), hint: 'Qualifications enregistrées'}) }}</div>
     </div>
 
-    <!-- Contenu principal -->
-    <div class="p-4 flex-grow-1">
-        <h1 class="mb-2">Bienvenue, {{ app.user.prenom }} {{ app.user.nom }}</h1>
-        <p class="text-muted mb-4">Consultez vos interventions et gérez vos tickets.</p>
-
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="card border-warning h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">📍 Pannes à proximité</h5>
-                        <p class="card-text text-muted">
-                            Localisez les pannes ouvertes autour de votre position actuelle.
-                        </p>
-                        <a href="{{ path('technicien_pannes_proximite') }}" class="btn btn-warning btn-sm">Consulter</a>
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <section class="om-card h-100" aria-labelledby="titre-tickets">
+                <div class="om-card__header">
+                    <div>
+                        <h2 class="om-card__title" id="titre-tickets"><i class="bi bi-ticket-detailed" aria-hidden="true"></i>Mes tickets à traiter</h2>
+                        <p class="om-card__subtitle">Tickets qui vous sont assignés, ouverts ou en cours</p>
                     </div>
+                    <a href="{{ path('technicien_mes_tickets') }}" class="btn btn-ghost btn-sm">Tous mes tickets<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
                 </div>
-            </div>
+                {% if ticketsActifs is empty %}
+                    {{ ui.empty_state('Aucun ticket à traiter', 'Les nouveaux tickets qui vous seront assignés apparaîtront ici.', 'check2-circle') }}
+                {% else %}
+                    <ul class="om-list">
+                        {% for reclamation in ticketsActifs|slice(0, 5) %}
+                            <li class="om-list__item">
+                                <span class="om-icon-tile om-icon-tile--{{ reclamation.etatTicket|ton('ticket') }}"><i class="bi bi-{{ reclamation.etatTicket == 'ouvert' ? 'envelope-open' : 'tools' }}" aria-hidden="true"></i></span>
+                                <div class="om-list__main">
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <code>{{ reclamation.codeTicket }}</code>
+                                        {{ ui.badge('priorite', reclamation.priorite) }}
+                                    </div>
+                                    <span class="om-cell-sub">{{ reclamation.typePanne|libelle('panne') }} · {{ reclamation.client ? reclamation.client.prenom ~ ' ' ~ reclamation.client.nom : 'Client inconnu' }}</span>
+                                </div>
+                                {{ ui.badge('ticket', reclamation.etatTicket) }}
+                                <a href="{{ path('technicien_ticket_update', {'id': reclamation.id}) }}" class="btn btn-outline-secondary btn-sm">
+                                    Traiter<span class="visually-hidden"> le ticket {{ reclamation.codeTicket }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </section>
+        </div>
 
-            <div class="col-md-6">
-    <div class="card border-success h-100">
-        <div class="card-body">
-            <h5 class="card-title">🧪 Qualifier une ligne xDSL</h5>
-            <p class="card-text text-muted">Testez la qualité d'un port MSAN.</p>
-            <a href="{{ path('technicien_qualification_new') }}" class="btn btn-success btn-sm">Tester</a>
+        <div class="col-xl-4 d-flex flex-column gap-4">
+            <section class="om-card" aria-labelledby="titre-position">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-position"><i class="bi bi-crosshair" aria-hidden="true"></i>Ma position</h2>
+                    {{ ui.disponibilite(app.user.disponible) }}
+                </div>
+                <div class="om-card__body">
+                    {% if positionConnue %}
+                        <p class="om-mono mb-1">{{ app.user.latitudeActuelle|number_format(5, '.') }}, {{ app.user.longitudeActuelle|number_format(5, '.') }}</p>
+                        <p class="om-muted om-small mb-3">Sert au calcul des pannes à proximité et de la distance au site.</p>
+                    {% else %}
+                        <p class="om-muted mb-3">Non renseignée.</p>
+                    {% endif %}
+                    <a href="{{ path('technicien_position') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-geo-alt" aria-hidden="true"></i>Mettre à jour ma position</a>
+                </div>
+            </section>
+
+            <section class="om-card" aria-labelledby="titre-pannes">
+                <div class="om-card__header">
+                    <h2 class="om-card__title" id="titre-pannes"><i class="bi bi-broadcast" aria-hidden="true"></i>Pannes proches</h2>
+                    <a href="{{ path('technicien_pannes_proximite') }}" class="btn btn-ghost btn-sm">Voir<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                </div>
+                {% if pannesProches is empty %}
+                    <p class="om-card__body om-muted mb-0">{{ positionConnue ? 'Aucune panne ouverte dans un rayon de 15 km.' : 'Renseignez votre position pour voir les pannes proches.' }}</p>
+                {% else %}
+                    <ul class="om-list">
+                        {% for panne in pannesProches %}
+                            <li class="om-list__item">
+                                <div class="om-list__main">
+                                    <code>{{ panne.code_ticket }}</code>
+                                    <span class="om-cell-sub">{{ panne.type_panne|libelle('panne') }} · {{ panne.nom_site }}</span>
+                                </div>
+                                <span class="om-mono om-small text-nowrap">{{ panne.distance|number_format(1, ',') }} km</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </section>
         </div>
     </div>
-</div>
-        </div>
-
-        <div class="card mt-4">
-            <div class="card-body">
-                <h6 class="card-title text-muted">📡 Ma position actuelle</h6>
-                <p class="mb-0">
-                    Latitude : <strong>{{ app.user.latitudeActuelle ?? 'Non renseignée' }}</strong> —
-                    Longitude : <strong>{{ app.user.longitudeActuelle ?? 'Non renseignée' }}</strong>
-                </p>
-                <small class="text-muted">Disponibilité : {{ app.user.disponible ? 'Disponible' : 'Indisponible' }}</small>
-                <div class="mt-2"><a href="{{ path('technicien_position') }}" class="btn btn-sm btn-outline-warning">Mettre à jour ma position</a></div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

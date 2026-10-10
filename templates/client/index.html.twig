@@ -1,77 +1,72 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout/client.html.twig' %}
+{% import '_ui/macros.html.twig' as ui %}
 
 {% block title %}Espace Client{% endblock %}
 
-{% block body %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
-    <span class="navbar-brand">OptiMSAN — Espace Client</span>
-    <div class="d-flex ms-auto">
-        <span class="navbar-text text-white me-3">
-            {{ app.user.prenom }} {{ app.user.nom }}
-        </span>
-        <a href="{{ path('app_logout') }}" class="btn btn-outline-light btn-sm">Déconnexion</a>
-    </div>
-</nav>
+{% block content %}
+    {% set reclamations = app.user.reclamations|sort((a, b) => b.dateCreation <=> a.dateCreation) %}
+    {% set demandes = app.user.demandeLignes|sort((a, b) => b.dateDemande <=> a.dateDemande) %}
+    {% set reclamationsEnCours = reclamations|filter(r => r.etatTicket in ['ouvert', 'en_cours']) %}
+    {% set demandesEnCours = demandes|filter(d => d.etatDemande in ['en_attente', 'validee', 'en_cours']) %}
 
-<div class="d-flex">
-    <!-- Sidebar -->
-    <div class="bg-light border-end vh-100 p-3" style="width: 250px;">
-        <h6 class="text-muted text-uppercase small mb-3">Mon espace</h6>
-        <div class="list-group mb-4">
-            <a href="{{ path('client_dashboard') }}" class="list-group-item list-group-item-action active">
-                🏠 Accueil
+    {{ ui.page_header('Bonjour ' ~ app.user.prenom, {
+        eyebrow: 'Mon espace',
+        icon: 'house',
+        subtitle: 'Suivez vos réclamations et vos demandes de ligne, étape par étape.',
+    }) }}
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <a class="om-action" href="{{ path('client_reclamation_new') }}">
+                <span class="om-icon-tile om-icon-tile--danger"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span>
+                <span>
+                    <span class="om-action__title">Signaler une panne</span>
+                    <span class="om-action__text">Coupure, lenteur, problème de box : un ticket est créé immédiatement.</span>
+                </span>
+                <i class="bi bi-arrow-right om-action__arrow" aria-hidden="true"></i>
             </a>
-            <a href="{{ path('client_reclamations') }}" class="list-group-item list-group-item-action">
-                🎫 Mes réclamations
+        </div>
+        <div class="col-md-6">
+            <a class="om-action" href="{{ path('client_demande_ligne_new') }}">
+                <span class="om-icon-tile om-icon-tile--accent"><i class="bi bi-telephone-plus" aria-hidden="true"></i></span>
+                <span>
+                    <span class="om-action__title">Demander une nouvelle ligne</span>
+                    <span class="om-action__text">ADSL, VDSL, fibre ou téléphone : indiquez l'adresse d'installation.</span>
+                </span>
+                <i class="bi bi-arrow-right om-action__arrow" aria-hidden="true"></i>
             </a>
-            <a href="{{ path('client_demandes_ligne') }}" class="list-group-item list-group-item-action">
-    📄 Mes demandes de ligne
-</a>
         </div>
     </div>
 
-    <!-- Contenu principal -->
-    <div class="p-4 flex-grow-1">
-        <h1 class="mb-2">Bienvenue, {{ app.user.prenom }} {{ app.user.nom }}</h1>
-        <p class="text-muted mb-4">Gérez vos réclamations et suivez l'état de vos demandes.</p>
+    <div class="row row-cols-2 row-cols-xl-4 g-3 mb-4">
+        <div class="col">{{ ui.kpi('Réclamations en cours', reclamationsEnCours|length, 'hourglass-split', 'warning', {url: path('client_reclamations'), hint: 'Ouvertes ou en traitement'}) }}</div>
+        <div class="col">{{ ui.kpi('Réclamations traitées', reclamations|length - reclamationsEnCours|length, 'check2-circle', 'success', {url: path('client_reclamations'), hint: 'Résolues ou fermées'}) }}</div>
+        <div class="col">{{ ui.kpi('Demandes en cours', demandesEnCours|length, 'telephone-plus', 'violet', {url: path('client_demandes_ligne'), hint: 'En attente ou en installation'}) }}</div>
+        <div class="col">{{ ui.kpi('Lignes installées', demandes|filter(d => d.etatDemande == 'installee')|length, 'telephone', 'accent', {url: path('client_demandes_ligne'), hint: 'Demandes abouties'}) }}</div>
+    </div>
 
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="card border-danger h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">🎫 Déposer une réclamation</h5>
-                        <p class="card-text text-muted">
-                            Signalez un problème sur votre ligne (panne, coupure, lenteur...).
-                        </p>
-                        <a href="{{ path('client_reclamation_new') }}" class="btn btn-danger btn-sm">Déposer</a>
-                    </div>
-                </div>
+    <section class="om-card" aria-labelledby="titre-suivi">
+        <div class="om-card__header">
+            <div>
+                <h2 class="om-card__title" id="titre-suivi"><i class="bi bi-ticket-detailed" aria-hidden="true"></i>Suivi de mes réclamations</h2>
+                <p class="om-card__subtitle">Les plus récentes en premier</p>
             </div>
-
-            <div class="col-md-6">
-                <div class="card border-info h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">📋 Suivre mes réclamations</h5>
-                        <p class="card-text text-muted">
-                            Consultez l'état de vos tickets en cours et résolus.
-                        </p>
-                        <a href="{{ path('client_reclamations') }}" class="btn btn-info btn-sm">Consulter</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-    <div class="card border-success h-100">
-        <div class="card-body">
-            <h5 class="card-title">📄 Demander une ligne</h5>
-            <p class="card-text text-muted">
-                Demandez l'installation d'une nouvelle ligne (ADSL, Fibre...).
-            </p>
-            <a href="{{ path('client_demande_ligne_new') }}" class="btn btn-success btn-sm">Demander</a>
+            <a href="{{ path('client_reclamations') }}" class="btn btn-ghost btn-sm">Tout voir<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         </div>
-    </div>
-</div>
-        </div>
-    </div>
-</div>
+        {% if reclamations is empty %}
+            {{ ui.empty_state('Aucune réclamation', 'Vous n\'avez signalé aucune panne pour le moment.', 'ticket-detailed', path('client_reclamation_new'), 'Signaler une panne') }}
+        {% else %}
+            <ul class="om-list">
+                {% for reclamation in reclamations|slice(0, 3) %}
+                    <li class="om-list__item flex-wrap">
+                        <div class="om-list__main" style="min-width: 220px;">
+                            <code>{{ reclamation.codeTicket }}</code>
+                            <span class="om-cell-sub">{{ reclamation.typePanne|libelle('panne') }} · {{ reclamation.dateCreation|date('d/m/Y') }}</span>
+                        </div>
+                        <div class="flex-grow-1" style="min-width: 300px;">{{ ui.frise_ticket(reclamation, true) }}</div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
 {% endblock %}

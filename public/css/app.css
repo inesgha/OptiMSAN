@@ -1,0 +1,93 @@
+:root {
+    /* Rôles */
+    --bs-dark: #10151F;
+    --bs-dark-rgb: 16, 21, 31;
+
+    --bs-primary: #1FB6A6;
+    --bs-primary-rgb: 31, 182, 166;
+
+    --bs-warning: #E8A33D;
+    --bs-warning-rgb: 232, 163, 61;
+
+    /* États */
+    --bs-info: #2B6CB0;
+    --bs-info-rgb: 43, 108, 176;
+
+    --bs-danger: #D64545;
+    --bs-danger-rgb: 214, 69, 69;
+
+    --bs-success: #2F9E64;
+    --bs-success-rgb: 47, 158, 100;
+
+    --bs-secondary: #5B6472;
+    --bs-secondary-rgb: 91, 100, 114;
+
+    /* Typo & forme */
+    --bs-body-font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    --bs-border-radius: 0.4rem;
+    --bs-border-radius-sm: 0.3rem;
+    --bs-border-radius-lg: 0.5rem;
+}
+
+body {
+    background-color: #F3F5F8;
+    letter-spacing: 0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* Codes techniques : tickets, demandes, IP, ports */
+code {
+    font-family: 'IBM Plex Mono', monospace;
+    background-color: rgba(31, 182, 166, 0.1);
+    color: #0F7A6E;
+    padding: 0.15em 0.5em;
+    border-radius: 0.3rem;
+    font-size: 0.9em;
+}
+
+/* Cartes : bordure fine, pas d'ombre lourde */
+.card {
+    border: 1px solid #E2E6EC;
+    box-shadow: none;
+}
+
+/* Sidebar : look "console" plutôt que menu générique */
+.list-group-item-action {
+    border: none;
+    border-radius: 0.3rem !important;
+    margin-bottom: 2px;
+    color: #384152;
+    font-weight: 500;
+}
+
+.list-group-item-action:hover {
+    background-color: rgba(31, 182, 166, 0.08);
+    color: #10151F;
+}
+
+.list-group-item-action.active {
+    background-color: #10151F;
+    border-color: #10151F;
+    color: #fff;
+}
+
+/* Tables : lignes plus fines, moins "grille de journal" */
+.table {
+    font-size: 0.925rem;
+}
+
+.table thead th {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-bottom-width: 2px;
+}
+
+/* Badges : texte lisible, pas de majuscules forcées */
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.7em;
+}

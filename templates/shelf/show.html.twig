@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Shelf {{ shelf.numeroShelf }}{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('app_shelf_index') }}">← Shelves</a>
+</nav>
+
+<div class="container mt-4" style="max-width: 600px;">
+    <h1 class="mb-4">Shelf n°{{ shelf.numeroShelf }}</h1>
+
+    <table class="table table-bordered">
+        <tbody>
+            <tr><th style="width: 200px;">ID</th><td><code>{{ shelf.id }}</code></td></tr>
+            <tr><th>Numéro Shelf</th><td>{{ shelf.numeroShelf }}</td></tr>
+            <tr><th>Adresse IP Sub</th><td><code>{{ shelf.adresseIpSub }}</code></td></tr>
+            <tr><th>Site MSAN</th><td>{{ shelf.siteMSAN ? shelf.siteMSAN.nomSite : '—' }}</td></tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_shelf_index') }}" class="btn btn-outline-secondary">Retour à la liste</a>
+    <a href="{{ path('app_shelf_edit', {'id': shelf.id}) }}" class="btn btn-primary">Modifier</a>
+
+    {{ include('shelf/_delete_form.html.twig') }}
+</div>
+{% endblock %}

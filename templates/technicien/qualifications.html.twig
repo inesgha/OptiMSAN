@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes qualifications de ligne{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-warning px-3">
+    <a class="navbar-brand text-dark" href="{{ path('technicien_dashboard') }}">← OptiMSAN Technicien</a>
+</nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Mes qualifications de ligne</h1>
+        <a href="{{ path('technicien_qualification_new') }}" class="btn btn-primary">+ Nouveau test</a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Date</th>
+                <th>Port</th>
+                <th>Standard</th>
+                <th>Débit ↓/↑</th>
+                <th>Distance</th>
+                <th>Qualité</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for qualification in qualifications %}
+            <tr>
+                <td>{{ qualification.dateTest|date('d/m/Y H:i') }}</td>
+                <td>Port {{ qualification.portMSAN.numeroPort }}</td>
+                <td>{{ qualification.standard }}</td>
+                <td>{{ qualification.channelRateDown }} / {{ qualification.channelRateUp }} kbps</td>
+                <td>{{ qualification.distanceKm }} km</td>
+                <td>
+                    <span class="badge bg-{{ qualification.qualiteGlobale == 'excellente' or qualification.qualiteGlobale == 'bonne' ? 'success' : (qualification.qualiteGlobale == 'moyenne' ? 'warning' : 'danger') }}">
+                        {{ qualification.qualiteGlobale }}
+                    </span>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">Aucun test réalisé pour le moment</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

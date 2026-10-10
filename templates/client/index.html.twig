@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espace Client{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
+    <span class="navbar-brand">OptiMSAN — Espace Client</span>
+    <div class="d-flex ms-auto">
+        <span class="navbar-text text-white me-3">
+            {{ app.user.prenom }} {{ app.user.nom }}
+        </span>
+        <a href="{{ path('app_logout') }}" class="btn btn-outline-light btn-sm">Déconnexion</a>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-light border-end vh-100 p-3" style="width: 250px;">
+        <h6 class="text-muted text-uppercase small mb-3">Mon espace</h6>
+        <div class="list-group mb-4">
+            <a href="{{ path('client_dashboard') }}" class="list-group-item list-group-item-action active">
+                🏠 Accueil
+            </a>
+            <a href="{{ path('client_reclamations') }}" class="list-group-item list-group-item-action">
+                🎫 Mes réclamations
+            </a>
+            <a href="{{ path('client_demandes_ligne') }}" class="list-group-item list-group-item-action">
+    📄 Mes demandes de ligne
+</a>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="p-4 flex-grow-1">
+        <h1 class="mb-2">Bienvenue, {{ app.user.prenom }} {{ app.user.nom }}</h1>
+        <p class="text-muted mb-4">Gérez vos réclamations et suivez l'état de vos demandes.</p>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card border-danger h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🎫 Déposer une réclamation</h5>
+                        <p class="card-text text-muted">
+                            Signalez un problème sur votre ligne (panne, coupure, lenteur...).
+                        </p>
+                        <a href="{{ path('client_reclamation_new') }}" class="btn btn-danger btn-sm">Déposer</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-info h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📋 Suivre mes réclamations</h5>
+                        <p class="card-text text-muted">
+                            Consultez l'état de vos tickets en cours et résolus.
+                        </p>
+                        <a href="{{ path('client_reclamations') }}" class="btn btn-info btn-sm">Consulter</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+    <div class="card border-success h-100">
+        <div class="card-body">
+            <h5 class="card-title">📄 Demander une ligne</h5>
+            <p class="card-text text-muted">
+                Demandez l'installation d'une nouvelle ligne (ADSL, Fibre...).
+            </p>
+            <a href="{{ path('client_demande_ligne_new') }}" class="btn btn-success btn-sm">Demander</a>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

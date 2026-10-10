@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ports MSAN{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
+</nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Ports MSAN</h1>
+        <a href="{{ path('app_port_m_s_a_n_new') }}" class="btn btn-primary">+ Ajouter un Port</a>
+    </div>
+
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Numéro Port</th>
+                <th>Type</th>
+                <th>État</th>
+                <th>Date d'affectation</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for port_m_s_a_n in port_m_s_a_ns %}
+            <tr>
+                <td><code>{{ port_m_s_a_n.id }}</code></td>
+                <td>{{ port_m_s_a_n.numeroPort }}</td>
+                <td>{{ port_m_s_a_n.typePort }}</td>
+                <td>
+                    <span class="badge bg-{{ port_m_s_a_n.etatPort == 'occupe' ? 'danger' : (port_m_s_a_n.etatPort == 'panne' ? 'secondary' : (port_m_s_a_n.etatPort == 'reserve' ? 'warning' : 'success')) }}">
+                        {{ port_m_s_a_n.etatPort }}
+                    </span>
+                </td>
+                <td>{{ port_m_s_a_n.dateAffectation ? port_m_s_a_n.dateAffectation|date('d/m/Y') : '—' }}</td>
+                <td>
+                    <a href="{{ path('app_port_m_s_a_n_show', {'id': port_m_s_a_n.id}) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
+                    <a href="{{ path('app_port_m_s_a_n_edit', {'id': port_m_s_a_n.id}) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">Aucun port enregistré</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

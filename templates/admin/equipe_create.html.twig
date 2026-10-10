@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ titre }}{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('admin_equipe') }}">← Équipe</a>
+</nav>
+
+<div class="container mt-4" style="max-width: 600px;">
+    <h1 class="mb-4">{{ titre }}</h1>
+
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit" class="btn btn-primary mt-3">Créer</button>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

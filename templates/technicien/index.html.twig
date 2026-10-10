@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espace Technicien{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-warning px-3">
+    <span class="navbar-brand text-dark fw-bold">OptiMSAN — Espace Technicien</span>
+    <div class="d-flex ms-auto">
+        <span class="navbar-text text-dark me-3">
+            {{ app.user.prenom }} {{ app.user.nom }}
+            {% if app.user.matricule is defined %}
+                <small class="text-muted">({{ app.user.matricule }})</small>
+            {% endif %}
+        </span>
+        <a href="{{ path('app_logout') }}" class="btn btn-outline-dark btn-sm">Déconnexion</a>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-light border-end vh-100 p-3" style="width: 250px;">
+        <h6 class="text-muted text-uppercase small mb-3">Mon espace</h6>
+        <div class="list-group mb-4">
+            <a href="{{ path('technicien_dashboard') }}" class="list-group-item list-group-item-action active">
+                🏠 Accueil
+            </a>
+            <a href="{{ path('technicien_pannes_proximite') }}" class="list-group-item list-group-item-action">
+                📍 Pannes à proximité
+            </a>
+           <a href="{{ path('technicien_qualifications') }}" class="list-group-item list-group-item-action">
+    🧪 Qualifier une ligne
+</a>
+      <a href="{{ path('technicien_carte') }}" class="list-group-item list-group-item-action">
+    🗺️ Carte des sites MSAN
+</a>
+            <a href="{{ path('technicien_mes_tickets') }}" class="list-group-item list-group-item-action">
+    🎫 Mes tickets
+</a>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="p-4 flex-grow-1">
+        <h1 class="mb-2">Bienvenue, {{ app.user.prenom }} {{ app.user.nom }}</h1>
+        <p class="text-muted mb-4">Consultez vos interventions et gérez vos tickets.</p>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card border-warning h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📍 Pannes à proximité</h5>
+                        <p class="card-text text-muted">
+                            Localisez les pannes ouvertes autour de votre position actuelle.
+                        </p>
+                        <a href="{{ path('technicien_pannes_proximite') }}" class="btn btn-warning btn-sm">Consulter</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+    <div class="card border-success h-100">
+        <div class="card-body">
+            <h5 class="card-title">🧪 Qualifier une ligne xDSL</h5>
+            <p class="card-text text-muted">Testez la qualité d'un port MSAN.</p>
+            <a href="{{ path('technicien_qualification_new') }}" class="btn btn-success btn-sm">Tester</a>
+        </div>
+    </div>
+</div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title text-muted">📡 Ma position actuelle</h6>
+                <p class="mb-0">
+                    Latitude : <strong>{{ app.user.latitudeActuelle ?? 'Non renseignée' }}</strong> —
+                    Longitude : <strong>{{ app.user.longitudeActuelle ?? 'Non renseignée' }}</strong>
+                </p>
+                <small class="text-muted">Disponibilité : {{ app.user.disponible ? 'Disponible' : 'Indisponible' }}</small>
+                <div class="mt-2"><a href="{{ path('technicien_position') }}" class="btn btn-sm btn-outline-warning">Mettre à jour ma position</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

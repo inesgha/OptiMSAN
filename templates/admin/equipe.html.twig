@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion de l'équipe{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
+</nav>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Gestion de l'équipe</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Administrateurs</h5>
+        <a href="{{ path('admin_create_admin') }}" class="btn btn-sm btn-primary">+ Nouvel Admin</a>
+    </div>
+    <table class="table table-striped mb-5">
+        <thead class="table-dark">
+            <tr><th>Nom</th><th>Email</th><th>Niveau d'accès</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+        {% for admin in administrateurs %}
+            <tr>
+                <td>{{ admin.prenom }} {{ admin.nom }}</td>
+                <td>{{ admin.email }}</td>
+                <td>{{ admin.niveauAcces }}</td>
+                <td>
+                    <span class="badge bg-secondary">Protégé</span>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="text-center text-muted py-3">Aucun administrateur</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Techniciens</h5>
+        <a href="{{ path('admin_create_technicien') }}" class="btn btn-sm btn-primary">+ Nouveau Technicien</a>
+    </div>
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr><th>Nom</th><th>Email</th><th>Matricule</th><th>Disponible</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+        {% for technicien in techniciens %}
+            <tr>
+                <td>{{ technicien.prenom }} {{ technicien.nom }}</td>
+                <td>{{ technicien.email }}</td>
+                <td><code>{{ technicien.matricule }}</code></td>
+                <td>
+                    <span class="badge bg-{{ technicien.disponible ? 'success' : 'secondary' }}">
+                        {{ technicien.disponible ? 'Oui' : 'Non' }}
+                    </span>
+                </td>
+                <td>
+                    <form method="post" action="{{ path('admin_equipe_delete', {'id': technicien.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer ce technicien ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ technicien.id) }}">
+                        <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-3">Aucun technicien</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

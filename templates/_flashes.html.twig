@@ -1,0 +1,15 @@
+{# Messages flash non affichés par la page elle-même : affichés en haut à droite sur toutes les pages #}
+{% set classes = {'success': 'success', 'error': 'danger', 'danger': 'danger', 'warning': 'warning', 'info': 'info'} %}
+{% set flashes = app.flashes %}
+{% if flashes is not empty %}
+    <div id="flash-messages" class="position-fixed top-0 end-0 p-3" style="z-index: 1080; max-width: 440px;">
+        {% for type, messages in flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ classes[type] ?? 'info' }} alert-dismissible fade show" role="alert" data-flash-type="{{ type }}">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endif %}

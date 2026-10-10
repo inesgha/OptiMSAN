@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sites MSAN{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
+</nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Sites MSAN</h1>
+        <a href="{{ path('app_site_m_s_a_n_new') }}" class="btn btn-success">+ Ajouter un site</a>
+    </div>
+
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nom du site</th>
+                <th>Adresse IP</th>
+                <th>Type MSAN</th>
+                <th>Constructeur</th>
+                <th>Zone</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for siteMsan in site_m_s_a_ns %}
+            <tr>
+                <td>{{ siteMsan.id }}</td>
+                <td>{{ siteMsan.nomSite }}</td>
+                <td><code>{{ siteMsan.adresseIP }}</code></td>
+                <td><span class="badge bg-info text-dark">{{ siteMsan.typeMSAN }}</span></td>
+                <td>{{ siteMsan.constructeur }}</td>
+                <td>{{ siteMsan.zone ? siteMsan.zone.nomZone : '—' }}</td>
+                <td>{{ siteMsan.latitude }}</td>
+                <td>{{ siteMsan.longitude }}</td>
+                <td>
+                    <a href="{{ path('app_site_m_s_a_n_show', {'id': siteMsan.id}) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
+                    <a href="{{ path('app_site_m_s_a_n_edit', {'id': siteMsan.id}) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="9" class="text-center text-muted py-4">Aucun site MSAN enregistré</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

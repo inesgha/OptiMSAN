@@ -1,0 +1,9 @@
+{# Aide : états accessibles depuis l'état actuel (variables : etatActuel, transitions) #}
+<div class="form-text">
+    État actuel : <strong>{{ etatActuel }}</strong>.
+    {% if transitions is empty %}
+        Cette demande est clôturée : elle ne peut plus être modifiée.
+    {% else %}
+        Changements possibles : {{ transitions|join(', ') }}.
+    {% endif %}
+</div>

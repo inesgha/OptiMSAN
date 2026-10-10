@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Site MSAN — {{ site_m_s_a_n.nomSite }}{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('app_site_m_s_a_n_index') }}">← Sites MSAN</a>
+</nav>
+
+<div class="container mt-4" style="max-width: 700px;">
+    <h1 class="mb-4">{{ site_m_s_a_n.nomSite }}</h1>
+
+    <table class="table table-bordered">
+        <tbody>
+            <tr><th style="width: 220px;">ID</th><td><code>{{ site_m_s_a_n.id }}</code></td></tr>
+            <tr><th>Nom du site</th><td>{{ site_m_s_a_n.nomSite }}</td></tr>
+            <tr><th>Adresse IP</th><td><code>{{ site_m_s_a_n.adresseIp }}</code></td></tr>
+            <tr><th>Type MSAN</th><td><span class="badge bg-info text-dark">{{ site_m_s_a_n.typeMSAN }}</span></td></tr>
+            <tr><th>Constructeur</th><td>{{ site_m_s_a_n.constructeur }}</td></tr>
+            <tr><th>Zone</th><td>{{ site_m_s_a_n.zone ? site_m_s_a_n.zone.nomZone : '—' }}</td></tr>
+            <tr><th>Latitude</th><td>{{ site_m_s_a_n.latitude }}</td></tr>
+            <tr><th>Longitude</th><td>{{ site_m_s_a_n.longitude }}</td></tr>
+        </tbody>
+    </table>
+
+    <div id="showMap" style="height: 300px; border-radius: 8px;" class="mb-3"></div>
+
+    <a href="{{ path('app_site_m_s_a_n_index') }}" class="btn btn-outline-secondary">Retour à la liste</a>
+    <a href="{{ path('app_site_m_s_a_n_edit', {'id': site_m_s_a_n.id}) }}" class="btn btn-primary">Modifier</a>
+
+    {{ include('site_msan/_delete_form.html.twig') }}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const map = L.map('showMap').setView([{{ site_m_s_a_n.latitude }}, {{ site_m_s_a_n.longitude }}], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    L.marker([{{ site_m_s_a_n.latitude }}, {{ site_m_s_a_n.longitude }}]).addTo(map);
+});
+</script>
+{% endblock %}

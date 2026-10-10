@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}OptiMSAN — Gestion réseau fixe & support technique{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark px-4 py-3" style="background-color: #10151F;">
+    <div class="d-flex align-items-center">
+        <img src="{{ asset('image/logo-tunisie-telecom2.webp ') }}" alt="Tunisie Télécom" height="36" class="me-3">
+        <span class="navbar-brand mb-0" style="letter-spacing: -0.02em;">OptiMSAN</span>
+    </div>
+    <div class="d-flex gap-2">
+        {% if app.user %}
+            <a href="{{ path(
+                is_granted('ROLE_ADMIN') ? 'admin_dashboard' :
+                (is_granted('ROLE_TECHNICIEN') ? 'technicien_dashboard' : 'client_dashboard')
+            ) }}" class="btn btn-primary btn-sm">Accéder à mon espace</a>
+        {% else %}
+            <a href="{{ path('app_login') }}" class="btn btn-outline-light btn-sm">Se connecter</a>
+            <a href="{{ path('app_register') }}" class="btn btn-primary btn-sm">Créer un compte</a>
+        {% endif %}
+    </div>
+</nav>
+
+<section class="py-5" style="background-color: #10151F; color: #fff;">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h1 class="display-5 mb-3" style="font-weight: 700; letter-spacing: -0.02em;">
+                    Le réseau fixe, sous contrôle.
+                </h1>
+                <p class="fs-5" style="color: #A8B0BD; max-width: 540px;">
+                    OptiMSAN centralise la supervision de l'infrastructure MSAN, le suivi des pannes
+                    et la gestion des demandes de ligne — pour les techniciens, les clients et les équipes réseau.
+                </p>
+                {% if not app.user %}
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{{ path('app_register') }}" class="btn btn-primary btn-lg">Créer un compte</a>
+                    <a href="{{ path('app_login') }}" class="btn btn-outline-light btn-lg">Se connecter</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container py-4">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="p-4 h-100" style="border-left: 3px solid #1FB6A6; background: #fff; border-radius: 0.4rem; border: 1px solid #E2E6EC; border-left: 3px solid #1FB6A6;">
+                    <h5 class="mb-2">Espace Client</h5>
+                    <p class="text-muted mb-0">
+                        Déposez une réclamation, suivez vos tickets et demandez l'installation d'une nouvelle ligne.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 h-100" style="background: #fff; border-radius: 0.4rem; border: 1px solid #E2E6EC; border-left: 3px solid #E8A33D;">
+                    <h5 class="mb-2">Espace Technicien</h5>
+                    <p class="text-muted mb-0">
+                        Localisez les pannes à proximité, qualifiez les lignes xDSL et mettez à jour vos interventions.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 h-100" style="background: #fff; border-radius: 0.4rem; border: 1px solid #E2E6EC; border-left: 3px solid #10151F;">
+                    <h5 class="mb-2">Espace Administration</h5>
+                    <p class="text-muted mb-0">
+                        Gérez l'inventaire réseau, assignez les interventions et suivez la saturation des sites.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="py-4 text-center text-muted border-top">
+    <small>OptiMSAN — Système de gestion réseau fixe & support technique</small>
+</footer>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Réclamations{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
+</nav>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Réclamations clients</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Ticket</th>
+                <th>Client</th>
+                <th>Type</th>
+                <th>Priorité</th>
+                <th>Technicien</th>
+                <th>État</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for reclamation in reclamations %}
+            <tr>
+                <td><code>{{ reclamation.codeTicket }}</code></td>
+                <td>{{ reclamation.client ? reclamation.client.prenom ~ ' ' ~ reclamation.client.nom : '—' }}</td>
+                <td>{{ reclamation.typePanne }}</td>
+                <td>
+                    <span class="badge bg-{{ reclamation.priorite == 'urgente' ? 'danger' : (reclamation.priorite == 'normale' ? 'warning' : 'secondary') }}">
+                        {{ reclamation.priorite }}
+                    </span>
+                </td>
+                <td>
+                    {% if reclamation.technicien %}
+                        {{ reclamation.technicien.prenom }} {{ reclamation.technicien.nom }}
+                    {% else %}
+                        <span class="text-muted">Non assigné</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge bg-{{ reclamation.etatTicket == 'ouvert' ? 'info' : (reclamation.etatTicket == 'resolu' or reclamation.etatTicket == 'ferme' ? 'success' : 'warning') }}">
+                        {{ reclamation.etatTicket }}
+                    </span>
+                </td>
+                <td>{{ reclamation.dateCreation ? reclamation.dateCreation|date('d/m/Y H:i') : '' }}</td>
+                <td>
+                    <a href="{{ path('admin_reclamation_assign', {'id': reclamation.id}) }}" class="btn btn-sm btn-primary">Gérer</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8" class="text-center text-muted py-4">Aucune réclamation pour le moment</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

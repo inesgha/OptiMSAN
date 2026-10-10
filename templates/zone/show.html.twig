@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Zone {{ zone.nomZone }}{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('app_zone_index') }}">← Zones</a>
+</nav>
+
+<div class="container mt-4" style="max-width: 600px;">
+    <h1 class="mb-4">{{ zone.nomZone }}</h1>
+
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th style="width: 200px;">ID</th>
+                <td><code>{{ zone.id }}</code></td>
+            </tr>
+            <tr>
+                <th>Nom de la zone</th>
+                <td>{{ zone.nomZone }}</td>
+            </tr>
+            <tr>
+                <th>Code postal</th>
+                <td>{{ zone.codePostal }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_zone_index') }}" class="btn btn-outline-secondary">Retour à la liste</a>
+    <a href="{{ path('app_zone_edit', {'id': zone.id}) }}" class="btn btn-primary">Modifier</a>
+
+    {{ include('zone/_delete_form.html.twig') }}
+</div>
+{% endblock %}

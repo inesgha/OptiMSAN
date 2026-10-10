@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérifiez vos e-mails — OptiMSAN{% endblock %}
+
+{% block body %}
+<div class="d-flex" style="min-height: 100vh;">
+    <!-- Panneau gauche -->
+    <div class="d-none d-lg-flex flex-column justify-content-between p-5" style="width: 45%; background-color: #10151F; color: #fff;">
+        <div class="d-flex align-items-center">
+            <img src="{{ asset('images/logo-tunisie-telecom.jpg') }}" alt="Tunisie Télécom" height="40" class="me-3">
+            <span class="fs-4 fw-semibold">OptiMSAN</span>
+        </div>
+
+        <div>
+            <h2 class="mb-3" style="font-weight: 700; letter-spacing: -0.02em;">
+                Le réseau fixe, sous contrôle.
+            </h2>
+            <p style="color: #A8B0BD; max-width: 420px;">
+                Supervision de l'infrastructure MSAN, suivi des pannes et gestion
+                des demandes de ligne, en un seul espace.
+            </p>
+        </div>
+
+        <small style="color: #5B6472;">OptiMSAN — Système de gestion réseau fixe & support technique</small>
+    </div>
+
+    <!-- Panneau droit -->
+    <div class="d-flex align-items-center justify-content-center flex-grow-1 p-4">
+        <div style="width: 100%; max-width: 380px;">
+            <div class="d-lg-none text-center mb-4">
+                <img src="{{ asset('images/logo-tunisie-telecom.jpg') }}" alt="Tunisie Télécom" height="36">
+            </div>
+
+            <div class="text-center mb-4">
+                <div class="mb-3" style="font-size: 2.5rem;">📩</div>
+                <h1 class="h3 mb-1" style="font-weight: 700;">Vérifiez vos e-mails</h1>
+            </div>
+
+            <p class="text-muted text-center">
+                Si un compte correspond à cet e-mail, un lien de réinitialisation
+                vient de vous être envoyé. Ce lien expire dans
+                {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
+            </p>
+
+            <p class="text-center text-muted mt-4">
+                Vous n'avez rien reçu ? Vérifiez vos spams ou
+                <a href="{{ path('app_forgot_password_request') }}">réessayez</a>.
+            </p>
+
+            <p class="text-center mt-4">
+                <a href="{{ path('app_login') }}" class="text-muted">← Retour à la connexion</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

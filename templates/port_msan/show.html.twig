@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Port MSAN n°{{ port_m_s_a_n.numeroPort }}{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('app_port_m_s_a_n_index') }}">← Ports MSAN</a>
+</nav>
+
+<div class="container mt-4" style="max-width: 600px;">
+    <h1 class="mb-4">Port n°{{ port_m_s_a_n.numeroPort }}</h1>
+
+    <table class="table table-bordered">
+        <tbody>
+            <tr><th style="width: 220px;">ID</th><td><code>{{ port_m_s_a_n.id }}</code></td></tr>
+            <tr><th>Numéro Port</th><td>{{ port_m_s_a_n.numeroPort }}</td></tr>
+            <tr><th>Type</th><td>{{ port_m_s_a_n.typePort }}</td></tr>
+            <tr>
+                <th>État</th>
+                <td>
+                    <span class="badge bg-{{ port_m_s_a_n.etatPort == 'occupe' ? 'danger' : (port_m_s_a_n.etatPort == 'panne' ? 'secondary' : (port_m_s_a_n.etatPort == 'reserve' ? 'warning' : 'success')) }}">
+                        {{ port_m_s_a_n.etatPort }}
+                    </span>
+                </td>
+            </tr>
+            <tr><th>Date d'affectation</th><td>{{ port_m_s_a_n.dateAffectation ? port_m_s_a_n.dateAffectation|date('d/m/Y') : '—' }}</td></tr>
+            <tr><th>SlotCard</th><td>{{ port_m_s_a_n.slotCard ? 'Slot n°' ~ port_m_s_a_n.slotCard.numeroSlot : '—' }}</td></tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_port_m_s_a_n_index') }}" class="btn btn-outline-secondary">Retour à la liste</a>
+    <a href="{{ path('app_port_m_s_a_n_edit', {'id': port_m_s_a_n.id}) }}" class="btn btn-primary">Modifier</a>
+
+    {{ include('port_msan/_delete_form.html.twig') }}
+</div>
+{% endblock %}

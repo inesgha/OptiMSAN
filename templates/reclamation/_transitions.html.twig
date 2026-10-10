@@ -1,0 +1,9 @@
+{# Aide : états accessibles depuis l'état actuel (variables : etatActuel, transitions) #}
+<div class="form-text">
+    État actuel : <strong>{{ etatActuel }}</strong>.
+    {% if transitions is empty %}
+        Ce ticket est clôturé : son état ne peut plus changer.
+    {% else %}
+        Changements possibles : {{ transitions|join(', ') }}.
+    {% endif %}
+</div>

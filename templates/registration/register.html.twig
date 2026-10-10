@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block body %}
+<div class="container mt-5" style="max-width: 500px;">
+    <h1 class="mb-4 text-center">Créer un compte client</h1>
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
+        {{ form_errors(registrationForm) }}
+        <div class="mb-3">
+            {{ form_label(registrationForm.nom) }}
+            {{ form_widget(registrationForm.nom, {'attr': {'class': 'form-control'}}) }}{{ form_errors(registrationForm.nom) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(registrationForm.prenom) }}
+            {{ form_widget(registrationForm.prenom, {'attr': {'class': 'form-control'}}) }}{{ form_errors(registrationForm.prenom) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(registrationForm.email) }}
+            {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control'}}) }}{{ form_errors(registrationForm.email) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(registrationForm.telephone) }}
+            {{ form_widget(registrationForm.telephone, {'attr': {'class': 'form-control'}}) }}{{ form_errors(registrationForm.telephone) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(registrationForm.cin) }}
+            {{ form_widget(registrationForm.cin, {'attr': {'class': 'form-control'}}) }}{{ form_errors(registrationForm.cin) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(registrationForm.adresse) }}
+            {{ form_widget(registrationForm.adresse, {'attr': {'class': 'form-control'}}) }}{{ form_errors(registrationForm.adresse) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(registrationForm.plainPassword) }}
+            {{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control'}}) }}{{ form_errors(registrationForm.plainPassword) }}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
+    {{ form_end(registrationForm) }}
+
+    <p class="text-center mt-3">
+        Déjà un compte ? <a href="{{ path('app_login') }}">Se connecter</a>
+    </p>
+</div>
+{% endblock %}

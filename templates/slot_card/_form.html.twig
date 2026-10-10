@@ -1,0 +1,21 @@
+{{ form_start(form) }}
+    {{ form_errors(form) }}
+    <div class="mb-3">
+        {{ form_label(form.numeroSlot, 'Numéro Slot') }}
+        {{ form_widget(form.numeroSlot, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.numeroSlot) }}
+    </div>
+    <div class="mb-3">
+        {{ form_label(form.typeCarte, 'Type de carte') }}
+        {{ form_widget(form.typeCarte, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.typeCarte) }}
+    </div>
+    <div class="mb-3">
+        {{ form_label(form.nombrePortsTotal, 'Nombre de ports total') }}
+        {{ form_widget(form.nombrePortsTotal, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.nombrePortsTotal) }}
+    </div>
+    <div class="mb-3">
+        {{ form_label(form.shelf, 'Shelf') }}
+        {{ form_widget(form.shelf, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.shelf) }}
+    </div>
+
+    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+{{ form_end(form) }}

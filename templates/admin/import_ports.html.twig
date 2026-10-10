@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Importer des ports MSAN{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('admin_dashboard') }}">← OptiMSAN Admin</a>
+</nav>
+
+<div class="container mt-4" style="max-width: 700px;">
+    <h1 class="mb-4">Importer des ports MSAN (Excel)</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <div class="alert alert-info">
+        <strong>Format attendu :</strong> un fichier .xlsx avec les colonnes dans cet ordre :
+        <br><code>ID (ignoré) | Numéro Port | Type Port | État Port | Date Affectation (AAAA-MM-JJ) | SlotCard ID</code>
+        <br><br>
+        <a href="{{ path('admin_export_ports') }}" class="btn btn-sm btn-outline-primary">Télécharger un modèle (export actuel)</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">Fichier Excel (.xlsx)</label>
+            <input type="file" name="fichier_excel" class="form-control" accept=".xlsx,.xls" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Importer</button>
+    </form>
+</div>
+{% endblock %}

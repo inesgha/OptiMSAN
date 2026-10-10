@@ -1,0 +1,17 @@
+{{ form_start(form) }}
+    {{ form_errors(form) }}
+    <div class="mb-3">
+        {{ form_label(form.numeroShelf, 'Numéro Shelf') }}
+        {{ form_widget(form.numeroShelf, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.numeroShelf) }}
+    </div>
+    <div class="mb-3">
+        {{ form_label(form.adresseIpSub, 'Adresse IP Sub') }}
+        {{ form_widget(form.adresseIpSub, {'attr': {'class': 'form-control'}}) }}{{ form_errors(form.adresseIpSub) }}
+    </div>
+    <div class="mb-3">
+        {{ form_label(form.sitemsan, 'Site MSAN') }}
+        {{ form_widget(form.sitemsan, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.sitemsan) }}
+    </div>
+
+    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+{{ form_end(form) }}

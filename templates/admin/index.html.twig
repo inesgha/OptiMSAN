@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espace Administrateur{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <span class="navbar-brand">OptiMSAN — Admin</span>
+    <div class="d-flex ms-auto">
+        <span class="navbar-text text-white me-3">
+            {{ app.user.prenom }} {{ app.user.nom }}
+        </span>
+        <a href="{{ path('app_logout') }}" class="btn btn-outline-light btn-sm">Déconnexion</a>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-light border-end vh-100 p-3" style="width: 250px;">
+        <h6 class="text-muted text-uppercase small mb-3">Inventaire réseau</h6>
+        <div class="list-group mb-4">
+            <a href="{{ path('app_zone_index') }}" class="list-group-item list-group-item-action">
+                📍 Zones
+            </a>
+            <a href="{{ path('app_site_m_s_a_n_index') }}" class="list-group-item list-group-item-action">
+                🏢 Sites MSAN
+            </a>
+            <a href="{{ path('app_shelf_index') }}" class="list-group-item list-group-item-action">
+                🗄️ Shelves
+            </a>
+            <a href="{{ path('app_slot_card_index') }}" class="list-group-item list-group-item-action">
+                🔌 SlotCards
+            </a>
+            <a href="{{ path('app_port_m_s_a_n_index') }}" class="list-group-item list-group-item-action">
+                🔗 Ports MSAN
+            </a>
+        </div>
+
+        <h6 class="text-muted text-uppercase small mb-3">Gestion</h6>
+        <div class="list-group">
+            <a href="{{ path('admin_reclamations') }}" class="list-group-item list-group-item-action">
+                🎫 Réclamations
+            </a>
+            <a href="{{ path('admin_demandes_ligne') }}" class="list-group-item list-group-item-action">
+                📄 Demandes de ligne
+            </a>
+            <a href="{{ path('admin_carte') }}" class="list-group-item list-group-item-action">
+                🗺️ Carte réseau
+            </a>
+            <a href="{{ path('admin_equipe') }}" class="list-group-item list-group-item-action">
+    👥 Équipe
+</a>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="p-4 flex-grow-1">
+        <h1 class="mb-4">Tableau de bord</h1>
+        <p class="text-muted">Bienvenue, {{ app.user.prenom }} {{ app.user.nom }}.</p>
+
+        <div class="row g-3 mt-2">
+            <div class="col-md-4">
+                <div class="card border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Zones</h5>
+                        <p class="card-text text-muted">Gérer les zones géographiques</p>
+                        <a href="{{ path('app_zone_index') }}" class="btn btn-primary btn-sm">Accéder</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Sites MSAN</h5>
+                        <p class="card-text text-muted">Gérer les sites et équipements</p>
+                        <a href="{{ path('app_site_m_s_a_n_index') }}" class="btn btn-success btn-sm">Accéder</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">📊 Dashboard de saturation</h5>
+                        <p class="card-text text-muted">Taux d'occupation des ports par site.</p>
+                        <a href="{{ path('admin_saturation') }}" class="btn btn-warning btn-sm">Consulter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-info">
+                    <div class="card-body">
+                        <h5 class="card-title">🗺️ Carte réseau</h5>
+                        <p class="card-text text-muted">Visualisez sites MSAN et demandes en attente.</p>
+                        <a href="{{ path('admin_carte') }}" class="btn btn-info btn-sm">Voir la carte</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-danger h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🎫 Réclamations</h5>
+                        <p class="card-text text-muted">Voir et assigner les tickets clients.</p>
+                        <a href="{{ path('admin_reclamations') }}" class="btn btn-danger btn-sm">Accéder</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-info h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📄 Demandes de ligne</h5>
+                        <p class="card-text text-muted">Gérer les demandes de nouvelle ligne.</p>
+                        <a href="{{ path('admin_demandes_ligne') }}" class="btn btn-info btn-sm">Accéder</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📊 Import / Export Excel</h5>
+                        <p class="card-text text-muted">Gérez l'inventaire des ports MSAN en masse via Excel.</p>
+                        <a href="{{ path('admin_export_ports') }}" class="btn btn-dark btn-sm">Exporter</a>
+                        <a href="{{ path('admin_import_ports') }}" class="btn btn-outline-dark btn-sm">Importer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

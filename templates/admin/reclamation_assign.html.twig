@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer le ticket {{ reclamation.codeTicket }}{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('admin_reclamations') }}">← Réclamations</a>
+</nav>
+
+<div class="container mt-4" style="max-width: 700px;">
+    <h1 class="mb-4">Ticket {{ reclamation.codeTicket }}</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Client :</strong> {{ reclamation.client ? reclamation.client.prenom ~ ' ' ~ reclamation.client.nom : '—' }}</p>
+            <p><strong>Type de panne :</strong> {{ reclamation.typePanne }}</p>
+            <p><strong>Description :</strong> {{ reclamation.description ?: 'Aucune description' }}</p>
+            {% if reclamation.notesIntervention %}
+                <p><strong>Notes du technicien :</strong> {{ reclamation.notesIntervention }}</p>
+            {% endif %}
+            <p><strong>Port concerné :</strong> {{ reclamation.portMSAN ? 'Port ' ~ reclamation.portMSAN.numeroPort : 'Non spécifié' }}</p>
+            <p class="mb-0"><strong>Créé le :</strong> {{ reclamation.dateCreation|date('d/m/Y H:i') }}</p>
+        </div>
+    </div>
+
+    {{ form_start(form) }}
+        {{ form_errors(form) }}
+        <div class="mb-3">
+            {{ form_label(form.technicien) }}
+            {{ form_widget(form.technicien, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.technicien) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.etatTicket) }}
+            {{ form_widget(form.etatTicket, {'attr': {'class': 'form-select'}}) }}{{ form_errors(form.etatTicket) }}
+            {% include 'reclamation/_transitions.html.twig' %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau Shelf{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{{ path('app_shelf_index') }}">← Shelves</a>
+</nav>
+
+<div class="container mt-4" style="max-width: 600px;">
+    <h1 class="mb-4">Nouveau Shelf</h1>
+
+    {{ include('shelf/_form.html.twig', {'button_label': 'Créer'}) }}
+
+    <a href="{{ path('app_shelf_index') }}" class="btn btn-outline-secondary mt-2">← Retour à la liste</a>
+</div>
+{% endblock %}
